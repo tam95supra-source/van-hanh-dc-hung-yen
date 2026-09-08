@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "project_id": "VAN_HANH_DC_HUNG_YEN",
+  "project_name": "Vận hành DC Hưng Yên",
+  "owner": "Nguyễn Văn Tâm",
+  "canonical_repo": "tam95supra-source/van-hanh-dc-hung-yen",
+  "primary_domain": "vanhanhdchungyen.cc.cd",
+  "status": "INFRASTRUCTURE_BOOTSTRAP",
+  "boundary_mode": "ALLOWLIST_FAIL_CLOSED",
+  "legacy_reference": {
+    "repository": "tam95supra-source/pick-pack-1291",
+    "mode": "READ_ONLY_REFERENCE",
+    "runtime_use": "FORBIDDEN",
+    "write_delete_deploy": "FORBIDDEN_UNTIL_OWNER_RETIRE_COMMAND"
+  },
+  "google_drive": {
+    "root": {
+      "id": "19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh",
+      "name": "VẬN HÀNH DC HƯNG YÊN"
+    },
+    "folders": {
+      "shared_data": {"id": "1mH6HiwDkG7k7KxjoLZsg648czvpdhn_F", "name": "00_DỮ_LIỆU_DÙNG_CHUNG"},
+      "lan_group_business": {"id": "1g02qbByvAp8pHW7cViTsajgfjDO_oCix", "name": "01_NGHIỆP_VỤ_THEO_LAN_GROUP"},
+      "group_documents": {"id": "1lgNuspH5tVu7QLh4i8Ph70HJBEXNDCZG", "name": "02_ẢNH_VÀ_BIÊN_BẢN_THEO_GROUP"},
+      "logs": {"id": "1BfTqobvZNwkTg0oifGtekf5MXEYKLcRn", "name": "03_LOG"},
+      "backups": {"id": "1SLKu7UHxrhW8Mh8o76OU5xzK3D0fcd7b", "name": "04_BACKUP"},
+      "exports": {"id": "1bdAYoBsiTiazjRNNzNENAlVTmfx5HkJk", "name": "05_XUẤT_DỮ_LIỆU"},
+      "system": {"id": "11vugBaVm9vHYlW-IC3zRntJbofDdw-7T", "name": "06_HỆ_THỐNG"}
+    },
+    "sheets": {},
+    "lan_groups": {}
+  },
+  "github": {
+    "repo": "tam95supra-source/van-hanh-dc-hung-yen",
+    "default_branch": "main"
+  },
+  "cloud": {
+    "provider_resources": {},
+    "status": "PENDING_PERMISSION_AND_PROVISIONING"
+  },
+  "google_runtime": {
+    "cloud_project": null,
+    "apps_script": null,
+    "oauth": null,
+    "gmail": null,
+    "status": "PENDING_PERMISSION_AND_PROVISIONING"
+  },
+  "android": {
+    "status": "DEFERRED_BY_OWNER",
+    "signing": "NOT_CREATED"
+  }
+}
