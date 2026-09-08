@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "project_id": "VAN_HANH_DC_HUNG_YEN",
+  "audited_at": "2026-09-08",
+  "legacy_repo": "tam95supra-source/pick-pack-1291",
+  "legacy_mode": "READ_ONLY_REFERENCE",
+  "rule": "No legacy provider/resource/credential is carried into the rebuild unless an audited capability is still required and the new architecture cannot replace it more simply.",
+  "decisions": [
+    {
+      "capability": "Cloud service runtime",
+      "legacy_evidence": ["service/wrangler.jsonc", "service/src/entry_product.ts"],
+      "legacy_implementation": "Cloudflare Worker + D1 + Durable Object + static assets + scheduled maintenance",
+      "new_requirement": "Primary realtime authority, durable operational DB, group realtime, outbox",
+      "decision": "KEEP_AS_NEW_RESOURCE",
+      "new_resource": "New Worker + new D1 + new Durable Object namespace/class",
+      "permissions": ["Cloudflare Account / Workers Scripts / Write(Edit)", "Cloudflare Account / D1 / Write(Edit)"],
+      "notes": "Workers Scripts Write also covers script deploy/settings/secrets/tail and account-level Worker Custom Domain APIs used by the old implementation."
+    },
+    {
+      "capability": "Cloudflare quota monitoring",
+      "legacy_evidence": ["D1/Workers quota optimization requirements", "Cloudflare D1 GraphQL analytics documentation"],
+      "legacy_implementation": "Dashboard/workflow readback and capacity checks",
+      "new_requirement": "Fail before project exceeds target 50% of free allocation",
+      "decision": "KEEP_AS_CONTROL_PLANE",
+      "new_resource": "Quota guard querying Cloudflare analytics for only registered project resources",
+      "permissions": ["Cloudflare Account / Account Analytics / Read"],
+      "notes": "D1 rowsRead/rowsWritten/databaseSizeBytes are available via GraphQL analytics; this permission is justified by the explicit <=50% quota requirement."
+    },
+    {
+      "capability": "Worker custom domain",
+      "legacy_evidence": ["tools/beta_domain_prepare.py"],
+      "legacy_implementation": "Account-level /accounts/{account}/workers/domains API; no Zone ID in the implementation",
+      "new_requirement": "Bind vanhanhdchungyen.cc.cd when DNS/zone authority is actually available",
+      "decision": "KEEP_BUT_DEFER_BINDING_UNTIL_VERIFIED",
+      "new_resource": "New Worker Custom Domain",
+      "permissions": ["Cloudflare Account / Workers Scripts / Write(Edit)"],
+      "explicitly_not_required": ["CF_ZONE_ID", "Zone Read", "DNS Write", "Workers Routes Write"],
+      "notes": "Do not overgrant zone permissions. workers.dev is the bootstrap endpoint until the hostname is attachable."
+    },
+    {
+      "capability": "Google Sheets projection",
+      "legacy_evidence": ["service/src/beta47_projection.ts", "service/src/outbound_beta78.ts"],
+      "legacy_implementation": "Beta used direct Google OAuth + Sheets API; Stable used GAS bridge",
+      "new_requirement": "One uniform async projection layer routing shared data and LAN_GROUP-specific business data to registered Sheet IDs",
+      "decision": "REPLACE_WITH_DIRECT_GOOGLE_API",
+      "new_resource": "New shared workbook + one workbook per LAN_GROUP",
+      "google_api": "Google Sheets API enabled",
+      "oauth_scope": "https://www.googleapis.com/auth/drive",
+      "notes": "Sheets API accepts the Drive OAuth scope. Separate spreadsheets scope is redundant when full Drive scope is already required for unattended Drive management."
+    },
+    {
+      "capability": "Google Drive document/image storage",
+      "legacy_evidence": ["service/src/document_management.ts"],
+      "legacy_implementation": "Worker exchanged OWNER refresh token and called Drive API directly for folder/file/resumable upload/delete/readback",
+      "new_requirement": "Google Drive is durable primary binary store under the pre-created project root",
+      "decision": "KEEP_DIRECT_API_WITH_NEW_BOUNDARY",
+      "new_resource": "Registered new project Drive root and registered descendants only",
+      "google_api": "Google Drive API enabled",
+      "oauth_scope": "https://www.googleapis.com/auth/drive",
+      "notes": "Full Drive scope is restricted but is the reliable unattended server-side path for managing the already-created project tree without a Picker. Runtime must fail closed outside DRIVE_ROOT_ID/registered IDs."
+    },
+    {
+      "capability": "Email OTP/reset delivery",
+      "legacy_evidence": ["google-apps-script/SUPERADMIN_AUTH_V2.gs"],
+      "legacy_implementation": "Apps Script MailApp.sendEmail",
+      "new_requirement": "Send OTP/reset messages only; no inbox read",
+      "decision": "REPLACE_WITH_GMAIL_API",
+      "new_resource": "OWNER Gmail OAuth used by Cloud/LAN auth service",
+      "google_api": "Gmail API enabled",
+      "oauth_scope": "https://www.googleapis.com/auth/gmail.send",
+      "explicitly_not_required": ["gmail.readonly", "gmail.modify", "https://mail.google.com/"]
+    },
+    {
+      "capability": "Apps Script runtime / web app / deployment",
+      "legacy_evidence": ["google-apps-script/appsscript.json", ".github/workflows/beta119-gas-auth-deploy.yml", ".github/workflows/beta-gas-service-url-repair.yml", "service/src/stable_sheet_bridge.ts"],
+      "legacy_implementation": "Auth/OTP state, Stable Sheet bridge, web-app compatibility/fallback, script version/deployment lifecycle",
+      "new_requirement": "Cloud/LAN authority + direct Sheets/Drive/Gmail APIs",
+      "decision": "DROP_FROM_INITIAL_REBUILD",
+      "replacement": ["Cloud/LAN auth core", "Direct Sheets API projection", "Direct Drive API storage", "Gmail API send-only", "LAN/offline fallback"],
+      "permissions_removed": ["Apps Script API", "script.projects", "script.deployments", "script.metrics", "script.processes", "script.external_request", "GAS_SCRIPT_ID", "GAS_DEPLOYMENT_ID", "GAS_BRIDGE_SHARED_SECRET"],
+      "notes": "Keeping GAS would create an additional writer/deploy path and quota surface without an audited unique capability."
+    },
+    {
+      "capability": "Cloud DR providers",
+      "legacy_evidence": ["services/cloud-dr", ".github/workflows/cloud-dr-deno-isolation-provision.yml", ".github/workflows/cloud-dr-render-isolation-provision.yml", ".github/workflows/cloud-dr-turso-isolation-provision.yml"],
+      "legacy_implementation": "Deno Deploy / Render / Turso passive DR adapters",
+      "new_requirement": "LAN Service + offline local + tested backup/restore are the approved backup path",
+      "decision": "DEFER_NOT_GRANTED",
+      "permissions_removed": ["DENO_DEPLOY_TOKEN", "RENDER_API_KEY", "TURSO_API_TOKEN", "TURSO_ORGANIZATION"],
+      "notes": "Do not provision extra cloud DR unless a future failure analysis proves LAN + backup/restore insufficient and OWNER approves the provider."
+    },
+    {
+      "capability": "Cloudflare R2 Storage",
+      "legacy_evidence": ["beta127-owner-r2-remediation.yml inspected: R2 means OWNER Requirement R2, not R2 Storage"],
+      "legacy_implementation": "No core R2 Storage dependency found",
+      "new_requirement": "Google Drive is durable binary store",
+      "decision": "DROP_NOT_REQUIRED",
+      "permissions_removed": ["Workers R2 Storage Write"]
+    },
+    {
+      "capability": "GitHub automation",
+      "legacy_evidence": [".github/workflows/beta-release.yml", "old provisioning workflows"],
+      "legacy_implementation": "GITHUB_TOKEN with per-workflow contents/actions permissions; provider secrets in Actions",
+      "new_requirement": "CI-first provisioning/build/test/control-plane",
+      "decision": "KEEP_AS_NEW_REPO",
+      "new_resource": "tam95supra-source/van-hanh-dc-hung-yen",
+      "permissions": ["ChatGPT connector admin+push already verified", "GITHUB_TOKEN permissions declared per workflow"],
+      "explicitly_not_required": ["GitHub PAT at current stage"],
+      "notes": "Infra bootstrap currently needs contents:read. Workflows that intentionally commit registry/receipts may request contents:write locally. APK release permissions remain deferred."
+    },
+    {
+      "capability": "Android signing/release",
+      "legacy_evidence": ["old Beta release pipeline"],
+      "new_requirement": "OWNER explicitly deferred APK/signing",
+      "decision": "DEFER",
+      "permissions_removed_for_now": ["Android signing key/secrets", "APK release/publish setup"]
+    }
+  ],
+  "new_initial_provider_set": [
+    "GitHub",
+    "Cloudflare Workers",
+    "Cloudflare D1",
+    "Cloudflare Durable Objects",
+    "Google Drive API",
+    "Google Sheets API",
+    "Gmail API",
+    "LAN Service on admin laptop"
+  ],
+  "not_in_initial_provider_set": [
+    "Google Apps Script",
+    "Deno Deploy",
+    "Render",
+    "Turso",
+    "Cloudflare R2",
+    "Cloudflare KV",
+    "Cloudflare Pages",
+    "Cloudflare Tunnel",
+    "Supabase"
+  ],
+  "known_cleanup_pending": {
+    "google_drive_duplicate_bootstrap_sheets": [
+      "1vtGXveI-2Iurp-3f7UE8vF09cVA-HRbrwnijzhOrBa4",
+      "1XHrjGDcI3EqqrU-Mye9AUlEoqPPJY061iba9Skcz8Q8"
+    ],
+    "action": "DO_NOT_DELETE_YET",
+    "reason": "Older bootstrap sheets contain master-resource tabs not present in the current registry sheets. Consolidate shared-vs-group schema first, then delete only after reference/readback checks."
+  }
+}
