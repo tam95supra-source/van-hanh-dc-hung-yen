@@ -1,12 +1,19 @@
 # ARCHITECTURE CURRENT — VẬN HÀNH DC HƯNG YÊN
 
-Status: OWNER-APPROVED LOGIC / IMPLEMENTATION PENDING
+Status: OWNER-APPROVED LOGIC / INFRASTRUCTURE BOOTSTRAP
 
 ## Normal mode
 
 PDA / Website -> local-first UI/state -> Cloud Service -> operational DB -> realtime delta -> durable outbox -> Google Sheets projection.
 
 Ảnh/biên bản: client/LAN/service spool -> Google Drive durable store; service không giữ binary lâu dài mặc định.
+
+Google integration ban đầu là **direct API** từ Cloud/LAN integration layer:
+- Google Drive API cho file/folder/ảnh/backup/export;
+- Google Sheets API cho shared + LAN_GROUP projection/readback;
+- Gmail API `gmail.send` cho OTP/reset mail.
+
+**Không dùng Google Apps Script trong initial rebuild.** GAS cũ được audit là auth/OTP + Stable Sheet bridge + fallback web API; các chức năng này đã được thay bằng Cloud/LAN auth, direct Google APIs và LAN/offline fallback.
 
 ## LAN mode
 
@@ -62,11 +69,31 @@ Mỗi group dùng workbook/folder riêng. Runtime resolve bằng ID trong regist
 
 ## Google data role
 
-- Operational DB/LAN DB: authority xử lý realtime.
+- Operational D1/LAN DB: transaction/realtime authority.
 - Google Sheet: async projection/reporting/đối soát, không nằm trên hot path mỗi thao tác.
-- Google Drive: durable primary binary store cho ảnh/biên bản.
+- Google Drive: durable primary binary store cho ảnh/biên bản + backup/export phù hợp.
+- Gmail: send-only notification/OTP channel.
+- Không có GAS writer/bridge thứ hai.
 
-## Storage guard
+## Cloud provider set ban đầu
+
+Giữ:
+- Cloudflare Worker
+- D1
+- Durable Object realtime
+- workers.dev bootstrap + Custom Domain khi hostname đủ điều kiện
+- Account Analytics readback cho quota guard.
+
+Không mang sang initial rebuild:
+- Cloudflare R2/KV/Pages/Tunnel;
+- Deno Deploy;
+- Render;
+- Turso;
+- Supabase.
+
+Cloud DR bổ sung chỉ được thêm sau nếu failure analysis chứng minh LAN + offline local + tested backup/restore chưa đủ và OWNER chốt provider.
+
+## Storage / quota guard
 
 Provider usage design target <= 50% free allocation hiện hành.
 Project cache/spool budget nằm trong phần budget đó:
@@ -74,11 +101,21 @@ Project cache/spool budget nằm trong phần budget đó:
 - 90% project budget: auto-evict oldest-first nhưng chỉ với cache/spool đã có durable-confirmed copy.
 - Không tự xóa sole copy/pending/pinned/hold/checksum-unverified.
 
+D1 quota guard đọc `rowsRead`, `rowsWritten`, storage/usage bằng Cloudflare Analytics và đối chiếu ngưỡng project.
+
 Nếu Drive cần thêm dung lượng dài hạn, OWNER có thể chủ động nâng cấp; hệ thống không tự phát sinh phí.
+
+## Project boundary
+
+- Runtime Google chỉ dùng `DRIVE_ROOT_ID` + resource IDs đăng ký.
+- Không search tên tương tự rồi tự chọn file/Sheet.
+- Resource không đăng ký -> fail closed.
+- PICK PACK 1291 chỉ read-only reference; không runtime fallback.
+- Cloudflare resource mới phải được receipt/readback rồi mới đăng ký active.
 
 ## Rebuild
 
 - Rebuild kỹ thuật sạch trên account nhà cung cấp hiện có nhưng resource/project mới.
-- Repo cũ PICK PACK 1291 chỉ read-only reference.
 - Giữ và port logic/invariant/UI/business rule đã OWNER chốt, không bê nguyên coupling/rác implementation cũ.
+- Quyền/provider được chọn từ `ops/LEGACY_RESOURCE_AUDIT.json`, không suy từ tên workflow/provider cũ.
 - APK/signing/release tạm hoãn; trước mắt hoàn thiện logic, data model, cloud/LAN service, Google integration, permissions, backup/restore và quota gates.
