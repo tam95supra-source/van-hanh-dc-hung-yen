@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "project_id": "VAN_HANH_DC_HUNG_YEN",
+  "owner": "Nguyễn Văn Tâm",
+  "principle": "ONE_TIME_COMPLETE_PROJECT_SCOPED_ACCESS",
+  "notes": [
+    "Cấp đủ quyền cần cho toàn vòng đời dự án ngay từ đầu, không cấp nhỏ giọt.",
+    "Không dùng Global API Key hoặc wildcard toàn tài khoản nếu quyền project-scoped đáp ứng được.",
+    "Secret value không lưu trong repo/Google Sheet/log. Chỉ lưu secret name/reference.",
+    "APK/signing đang DEFERRED nên chưa tạo signer/key Android ở giai đoạn này."
+  ],
+  "github": {
+    "repository": "tam95supra-source/van-hanh-dc-hung-yen",
+    "chatgpt_connection_required": {
+      "contents": "write",
+      "pull_requests": "write",
+      "issues": "write",
+      "actions": "write",
+      "metadata": "read",
+      "administration": "preferred_for_project_setup_if_available"
+    },
+    "current_connector_observation": "admin/push access already observed on repository",
+    "actions_secrets_owner_setup": [
+      "CF_API_TOKEN",
+      "CF_ACCOUNT_ID",
+      "CF_ZONE_ID",
+      "GOOGLE_SERVICE_ACCOUNT_JSON_OR_WIF_CONFIG",
+      "GOOGLE_CLOUD_PROJECT_ID",
+      "GOOGLE_OAUTH_CLIENT_ID",
+      "GOOGLE_OAUTH_CLIENT_SECRET_OR_SECRET_REFERENCE",
+      "GMAIL_REFRESH_TOKEN_OR_RUNTIME_AUTH_REFERENCE"
+    ],
+    "android_signing": "DEFERRED"
+  },
+  "cloudflare": {
+    "token_type": "CUSTOM_PROJECT_DEPLOY_TOKEN",
+    "account_permissions": [
+      "Workers Scripts Write",
+      "Workers CI Write",
+      "D1 Write",
+      "Workers Tail Read",
+      "Account Settings Read"
+    ],
+    "zone_permissions": [
+      "Zone Read",
+      "DNS Write",
+      "Workers Routes Write"
+    ],
+    "optional_not_enabled_initially": [
+      "Workers R2 Storage Write",
+      "Pages Write",
+      "Cloudflare Tunnel Write"
+    ],
+    "resource_scope": "ONLY_ACCOUNT_AND_ZONE_HOSTING_vanhanhdchungyen.cc.cd",
+    "forbidden": [
+      "Global API Key",
+      "Billing Write",
+      "API Tokens Write unless OWNER explicitly wants token-factory automation",
+      "unrelated zones/accounts"
+    ]
+  },
+  "google_cloud": {
+    "new_cloud_project_required": true,
+    "apis_to_enable": [
+      "Google Drive API",
+      "Google Sheets API",
+      "Gmail API"
+    ],
+    "apps_script": {
+      "new_project": true,
+      "standard_google_cloud_project_link": true,
+      "hot_path": false
+    },
+    "runtime_scopes": [
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "scope_policy": "Prefer drive.file plus exact folder/file allowlist. Escalate to full drive only if a required server-side workflow cannot operate with drive.file and OWNER explicitly approves.",
+    "service_identity": "NEW_PROJECT_SERVICE_IDENTITY_OR_WIF",
+    "drive_access": "Service identity must receive writer access only to the new VẬN HÀNH DC HƯNG YÊN root/resources needed by runtime.",
+    "gmail": "Send-only scope; no inbox read/modify required for OTP/reset mail unless OWNER later changes requirement."
+  },
+  "google_drive_chatgpt": {
+    "status": "CONNECTED_AND_WRITE_VERIFIED",
+    "allowed_root_id": "19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh",
+    "rule": "ChatGPT Drive operations for this project must stay inside registered new-project resources except explicit read-only legacy reference reads."
+  },
+  "domain": {
+    "primary": "vanhanhdchungyen.cc.cd",
+    "beta_recommended": "beta.vanhanhdchungyen.cc.cd",
+    "dns_zone": "existing zone may be reused; only new project records/routes are allowed"
+  },
+  "manual_owner_actions": [
+    "Create Cloudflare custom API token with permissions in this manifest and add it to the new GitHub repository Actions secrets.",
+    "Create a new Google Cloud project for Vận hành DC Hưng Yên, enable Drive/Sheets/Gmail APIs, create runtime identity/OAuth configuration, and grant the runtime identity access only to the new Drive project root/resources.",
+    "Create/link a new Apps Script project to the new Google Cloud project if Apps Script compatibility/admin jobs are retained.",
+    "Add resulting non-public credentials to GitHub Actions secrets; do not paste secrets into repository files or Sheets."
+  ]
+}
