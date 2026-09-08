@@ -1,117 +1,140 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project_id": "VAN_HANH_DC_HUNG_YEN",
   "owner": "Nguyễn Văn Tâm",
-  "principle": "ONE_TIME_COMPLETE_PROJECT_SCOPED_ACCESS",
   "verified_at": "2026-09-08",
-  "notes": [
-    "Cấp đủ quyền cần cho toàn vòng đời dự án ngay từ đầu, không cấp nhỏ giọt.",
-    "Không dùng Global API Key hoặc wildcard toàn tài khoản nếu quyền project-scoped đáp ứng được.",
-    "Secret value không lưu trong repo/Google Sheet/log; chỉ lưu trong GitHub Actions Secrets hoặc secret store phù hợp.",
-    "APK/signing đang DEFERRED theo OWNER."
-  ],
+  "authority": "ops/LEGACY_RESOURCE_AUDIT.json + current provider documentation + new architecture",
+  "principle": "ONE_TIME_COMPLETE_EVIDENCE_BASED_PROJECT_ACCESS",
+  "status": "READY_FOR_OWNER_PERMISSION_BOOTSTRAP",
   "github": {
     "repository": "tam95supra-source/van-hanh-dc-hung-yen",
     "chatgpt_connector": "ADMIN_PUSH_VERIFIED",
-    "workflow_permissions_required": "READ_WRITE",
-    "actions_secrets": [
+    "pat_required": false,
+    "workflow_policy": "Use GITHUB_TOKEN and declare permissions per workflow. Current infrastructure bootstrap only needs contents:read; later workflows may request contents:write only when they intentionally commit canonical state/receipts.",
+    "actions_secrets_owner_must_create": [
       "CF_API_TOKEN",
-      "GOOGLE_OAUTH_CLIENT_ID",
       "GOOGLE_OAUTH_CLIENT_SECRET",
       "GOOGLE_OAUTH_REFRESH_TOKEN"
     ],
-    "actions_variables": [
+    "actions_variables_owner_must_create": [
       "CF_ACCOUNT_ID",
-      "GOOGLE_CLOUD_PROJECT_ID",
-      "GOOGLE_CLOUD_PROJECT_NUMBER",
-      "GAS_SCRIPT_ID"
-    ],
-    "explicitly_not_required": [
-      "CF_ZONE_ID",
-      "GOOGLE_SERVICE_ACCOUNT_JSON",
-      "GMAIL_REFRESH_TOKEN_SEPARATE"
-    ],
-    "android_signing": "DEFERRED"
+      "GOOGLE_OAUTH_CLIENT_ID",
+      "GOOGLE_CLOUD_PROJECT_ID"
+    ]
   },
   "cloudflare": {
     "token_type": "CUSTOM_ACCOUNT_SCOPED_AUTOMATION_TOKEN",
-    "account_permissions": [
-      "Workers Scripts Edit",
-      "D1 Edit",
-      "Workers Tail Read",
-      "Account Settings Read",
-      "Account Analytics Read"
+    "account_permissions_exact": [
+      {"permission": "Workers Scripts", "level": "Edit", "api_name": "Workers Scripts Write", "why": "Worker/Durable Object/static assets/cron/settings/secrets/tail/workers.dev/custom-domain lifecycle"},
+      {"permission": "D1", "level": "Edit", "api_name": "D1 Write", "why": "Create/list/query/migrate/export/import/delete the new project D1"},
+      {"permission": "Account Analytics", "level": "Read", "api_name": "Account Analytics Read", "why": "Read D1 rowsRead/rowsWritten/storage and Worker usage for the OWNER <=50% quota guard"}
     ],
-    "zone_permissions_initial": [],
-    "why_no_zone_permissions": "Current project bootstrap has no verified active Cloudflare zone/Zone ID for vanhanhdchungyen.cc.cd. Worker is the origin, so intended binding is Workers Custom Domain, not Workers Route. Cloudflare Attach Domain API accepts Workers Scripts Write/Edit. DNS/Workers Routes permissions are not needed for the core Worker+D1 deployment path.",
-    "workers_ci_permission": "NOT_REQUIRED_FOR_GITHUB_ACTIONS_WRANGLER_DEPLOY",
-    "resource_scope": "INCLUDE_ONLY_CURRENT_CLOUDFLARE_ACCOUNT",
-    "initial_endpoint": "workers.dev until primary-domain DNS/zone authority is verified",
-    "domain_binding_rule": "Do not request CF_ZONE_ID. If an active owned Cloudflare zone is later verified, attach the Custom Domain using the Worker domain API/Wrangler custom_domain flow. Add Zone/DNS/Workers Routes permissions only if a later approved design explicitly needs zone management or Workers Routes.",
-    "not_granted_initially": [
+    "resource_scope": "Include only the Cloudflare account that will host the new project",
+    "secret": "CF_API_TOKEN",
+    "variable": "CF_ACCOUNT_ID",
+    "not_required": [
+      "CF_ZONE_ID",
       "Zone Read/Edit",
       "DNS Read/Edit",
       "Workers Routes Read/Edit",
-      "Workers CI Edit",
-      "Workers R2 Storage Edit",
-      "Workers KV Storage Edit",
-      "Pages Edit",
-      "Cloudflare Tunnel Edit",
-      "Billing Edit",
-      "API Tokens Edit"
+      "Workers Tail Read as a separate permission because Workers Scripts Write already authorizes tail APIs",
+      "Account Settings Read as a separate permission because Workers Scripts Write already authorizes required Worker account/script settings reads",
+      "Workers CI",
+      "Workers R2 Storage",
+      "Workers KV Storage",
+      "Pages",
+      "Cloudflare Tunnel",
+      "Billing Write",
+      "API Tokens Write",
+      "Global API Key"
     ],
-    "forbidden": [
-      "Global API Key",
-      "unrelated accounts/resources",
-      "automatic paid-plan changes"
-    ]
-  },
-  "google_cloud": {
-    "new_cloud_project_required": true,
-    "apis_to_enable": [
-      "Google Drive API",
-      "Google Sheets API",
-      "Gmail API",
-      "Apps Script API"
-    ],
-    "runtime_identity": "OWNER_OAUTH_2_0",
-    "reason": "Personal Gmail/My Drive is used. Service accounts do not have storage quota and are not suitable as the owner of durable project files in personal My Drive; OAuth on behalf of OWNER makes OWNER the file owner and consumes OWNER Drive quota.",
-    "oauth_scopes": [
-      "https://www.googleapis.com/auth/drive",
-      "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/gmail.send",
-      "https://www.googleapis.com/auth/script.projects",
-      "https://www.googleapis.com/auth/script.deployments"
-    ],
-    "optional_read_only_apps_script_monitoring_scopes": [
-      "https://www.googleapis.com/auth/script.metrics",
-      "https://www.googleapis.com/auth/script.processes"
-    ],
-    "drive_scope_note": "Full drive scope is required for unattended backend management of the pre-created project root without Google Picker. Because this OAuth technically authorizes the OWNER Drive account, PROJECT_BOUNDARY must fail closed on DRIVE_ROOT_ID and registered resource IDs.",
-    "gmail": "gmail.send only; no inbox read/modify/delete permissions.",
-    "apps_script": {
-      "new_project": true,
-      "standard_google_cloud_project_link": true,
-      "hot_path": false,
-      "runtime_manifest_scope_if_urlfetch_used": "https://www.googleapis.com/auth/script.external_request"
+    "domain": {
+      "primary": "vanhanhdchungyen.cc.cd",
+      "bootstrap_endpoint": "workers.dev",
+      "binding_method": "Account-level Workers Custom Domain API after hostname eligibility is verified",
+      "permission": "Workers Scripts Write",
+      "zone_id_required": false,
+      "rule": "Do not add Zone/DNS/Workers Routes permissions unless a future approved design actually uses those APIs."
     }
   },
-  "google_drive_chatgpt": {
-    "status": "CONNECTED_AND_WRITE_VERIFIED",
-    "allowed_root_id": "19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh",
-    "rule": "ChatGPT Drive operations for this project must stay inside registered new-project resources except explicit read-only legacy reference reads."
+  "google": {
+    "cloud_project": "Create one new Google Cloud project dedicated to Vận hành DC Hưng Yên",
+    "apis_to_enable_exact": [
+      "Google Drive API",
+      "Google Sheets API",
+      "Gmail API"
+    ],
+    "apps_script_api": "NOT_ENABLED_INITIAL_REBUILD",
+    "runtime_identity": "OWNER OAuth 2.0 offline access",
+    "oauth_scopes_exact": [
+      {"scope": "https://www.googleapis.com/auth/drive", "classification": "restricted", "why": "Unattended server-side management of the already-created project Drive tree and Sheets via registered IDs; Sheets API accepts this scope"},
+      {"scope": "https://www.googleapis.com/auth/gmail.send", "classification": "sensitive", "why": "Send OTP/reset email only"}
+    ],
+    "oauth_flow": {
+      "client_type": "Web application",
+      "offline_access": true,
+      "authorization_parameters": ["access_type=offline", "prompt=consent"],
+      "publishing_status": "In production before durable refresh-token bootstrap; Testing refresh tokens expire after 7 days for these scopes",
+      "owner_only_initial_authorization": true
+    },
+    "github_storage": {
+      "GOOGLE_OAUTH_CLIENT_ID": "variable",
+      "GOOGLE_OAUTH_CLIENT_SECRET": "secret",
+      "GOOGLE_OAUTH_REFRESH_TOKEN": "secret",
+      "GOOGLE_CLOUD_PROJECT_ID": "variable"
+    },
+    "runtime_secret_copy": "CI may copy only required Google secret values into the new Worker secret store after Cloudflare provisioning; never plaintext repo/Sheet/log.",
+    "drive_boundary": {
+      "root_id": "19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh",
+      "mode": "FAIL_CLOSED_ALLOWLIST",
+      "rules": [
+        "Never search Drive by similar name and choose a resource",
+        "Only root/descendant/resource IDs registered in PROJECT_RESOURCE_REGISTRY may be used",
+        "Never read/write PICK PACK 1291 Drive/Sheets at runtime",
+        "LAN_GROUP business data must route to that group's registered workbook/folder"
+      ]
+    },
+    "not_required_initially": [
+      "https://www.googleapis.com/auth/spreadsheets because the required full Drive scope is accepted by Sheets API",
+      "Google Apps Script API",
+      "script.projects",
+      "script.deployments",
+      "script.metrics",
+      "script.processes",
+      "script.external_request",
+      "GAS_SCRIPT_ID",
+      "GAS_DEPLOYMENT_ID",
+      "GOOGLE_SERVICE_ACCOUNT_JSON",
+      "GMAIL_REFRESH_TOKEN as a separate token",
+      "gmail.readonly",
+      "gmail.modify",
+      "https://mail.google.com/"
+    ]
   },
-  "domain": {
-    "primary": "vanhanhdchungyen.cc.cd",
-    "beta_recommended": "beta.vanhanhdchungyen.cc.cd",
-    "cloudflare_zone_status": "NOT_VERIFIED_NO_ZONE_ID_OBSERVED",
-    "permission_implication": "Do not request or store CF_ZONE_ID until an active Cloudflare zone is actually verified. Domain binding is a separate DNS-authority prerequisite, not a reason to overgrant the automation token."
+  "replaced_legacy_components": {
+    "Google Apps Script auth/OTP": "Cloud/LAN auth core + Gmail API send-only",
+    "Google Apps Script Stable Sheet bridge": "Direct Sheets API projection using OWNER OAuth",
+    "Google Apps Script fallback web app": "LAN Service + PDA offline local",
+    "Deno/Render/Turso cloud DR": "DEFER; LAN + tested backup/restore is initial DR",
+    "Cloudflare R2": "Not an audited dependency; Google Drive is durable binary storage"
   },
-  "manual_owner_actions": [
-    "Create one Cloudflare custom API token with exactly the five account permissions in this manifest and store it as CF_API_TOKEN; store only CF_ACCOUNT_ID as Cloudflare variable.",
-    "Create one new Google Cloud project and enable Drive, Sheets, Gmail and Apps Script APIs.",
-    "Create one OWNER OAuth Web Client, authorize the five listed scopes once, and store Client ID, Client Secret and Refresh Token in GitHub Actions Secrets.",
-    "Create/link the new Apps Script project and store GAS_SCRIPT_ID plus Google Cloud project ID/number as GitHub variables.",
-    "Do not send any secret value in chat."
+  "auto_generated_after_owner_bootstrap": [
+    "New Worker and D1 resource IDs",
+    "Service auth/session signing secrets",
+    "LAN enrollment/fencing key material",
+    "Group resource IDs as groups are created",
+    "Backup/restore receipts and quota-readback receipts"
+  ],
+  "android": {
+    "status": "DEFERRED_BY_OWNER",
+    "signer_and_release_permissions": "NOT_REQUESTED_NOW"
+  },
+  "owner_one_time_actions": [
+    "GitHub: no PAT; ensure Actions is enabled. Current repo/ChatGPT access is already verified.",
+    "Cloudflare: create one custom token with exactly Workers Scripts Edit + D1 Edit + Account Analytics Read for the target account; save as CF_API_TOKEN and save CF_ACCOUNT_ID as variable.",
+    "Google Cloud: create the new project and enable exactly Drive API + Sheets API + Gmail API.",
+    "Google OAuth: create one Web OAuth client, set app In production, authorize OWNER once with drive + gmail.send using offline access/prompt consent; store Client ID variable and Client Secret/Refresh Token secrets.",
+    "Do not create Apps Script, service-account JSON, CF_ZONE_ID, DR-provider tokens, R2/KV credentials, or Android signing credentials at this stage.",
+    "Never send secret values in chat."
   ]
 }
