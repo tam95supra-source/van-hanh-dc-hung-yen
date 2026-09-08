@@ -11,12 +11,12 @@
     "chatgpt_connector": "ADMIN_PUSH_VERIFIED",
     "pat_required": false,
     "workflow_policy": "Use GITHUB_TOKEN and declare permissions per workflow. Current infrastructure bootstrap only needs contents:read; later workflows may request contents:write only when they intentionally commit canonical state/receipts.",
-    "actions_secrets_owner_must_create": [
+    "actions_secret_names_owner_must_create": [
       "CF_API_TOKEN",
       "GOOGLE_OAUTH_CLIENT_SECRET",
       "GOOGLE_OAUTH_REFRESH_TOKEN"
     ],
-    "actions_variables_owner_must_create": [
+    "actions_variable_names_owner_must_create": [
       "CF_ACCOUNT_ID",
       "GOOGLE_OAUTH_CLIENT_ID",
       "GOOGLE_CLOUD_PROJECT_ID"
@@ -30,8 +30,8 @@
       {"permission": "Account Analytics", "level": "Read", "api_name": "Account Analytics Read", "why": "Read D1 rowsRead/rowsWritten/storage and Worker usage for the OWNER <=50% quota guard"}
     ],
     "resource_scope": "Include only the Cloudflare account that will host the new project",
-    "secret": "CF_API_TOKEN",
-    "variable": "CF_ACCOUNT_ID",
+    "github_actions_credential_reference": "CF_API_TOKEN_SECRET_NAME",
+    "github_actions_account_id_variable_name": "CF_ACCOUNT_ID",
     "not_required": [
       "CF_ZONE_ID",
       "Zone Read/Edit",
@@ -77,13 +77,13 @@
       "publishing_status": "In production before durable refresh-token bootstrap; Testing refresh tokens expire after 7 days for these scopes",
       "owner_only_initial_authorization": true
     },
-    "github_storage": {
-      "GOOGLE_OAUTH_CLIENT_ID": "variable",
-      "GOOGLE_OAUTH_CLIENT_SECRET": "secret",
-      "GOOGLE_OAUTH_REFRESH_TOKEN": "secret",
-      "GOOGLE_CLOUD_PROJECT_ID": "variable"
+    "github_storage_reference_names": {
+      "client_id_variable_name": "GOOGLE_OAUTH_CLIENT_ID",
+      "client_secret_reference": "GOOGLE_OAUTH_CLIENT_SECRET_NAME",
+      "refresh_token_reference": "GOOGLE_OAUTH_REFRESH_TOKEN_SECRET_NAME",
+      "cloud_project_id_variable_name": "GOOGLE_CLOUD_PROJECT_ID"
     },
-    "runtime_secret_copy": "CI may copy only required Google secret values into the new Worker secret store after Cloudflare provisioning; never plaintext repo/Sheet/log.",
+    "runtime_credential_copy_policy": "CI may copy only required Google credential values from GitHub Actions secure storage into the new Worker secret store after Cloudflare provisioning; never plaintext repo/Sheet/log.",
     "drive_boundary": {
       "root_id": "19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh",
       "mode": "FAIL_CLOSED_ALLOWLIST",
@@ -120,7 +120,7 @@
   },
   "auto_generated_after_owner_bootstrap": [
     "New Worker and D1 resource IDs",
-    "Service auth/session signing secrets",
+    "Service auth/session signing credential material in provider secret store",
     "LAN enrollment/fencing key material",
     "Group resource IDs as groups are created",
     "Backup/restore receipts and quota-readback receipts"
@@ -131,10 +131,10 @@
   },
   "owner_one_time_actions": [
     "GitHub: no PAT; ensure Actions is enabled. Current repo/ChatGPT access is already verified.",
-    "Cloudflare: create one custom token with exactly Workers Scripts Edit + D1 Edit + Account Analytics Read for the target account; save as CF_API_TOKEN and save CF_ACCOUNT_ID as variable.",
+    "Cloudflare: create one custom token with exactly Workers Scripts Edit + D1 Edit + Account Analytics Read for the target account; save under the GitHub Actions name CF_API_TOKEN and save CF_ACCOUNT_ID as variable.",
     "Google Cloud: create the new project and enable exactly Drive API + Sheets API + Gmail API.",
-    "Google OAuth: create one Web OAuth client, set app In production, authorize OWNER once with drive + gmail.send using offline access/prompt consent; store Client ID variable and Client Secret/Refresh Token secrets.",
+    "Google OAuth: create one Web OAuth client, set app In production, authorize OWNER once with drive + gmail.send using offline access/prompt consent; store Client ID variable and Client Secret/Refresh Token in secure GitHub Actions storage.",
     "Do not create Apps Script, service-account JSON, CF_ZONE_ID, DR-provider tokens, R2/KV credentials, or Android signing credentials at this stage.",
-    "Never send secret values in chat."
+    "Never send credential values in chat."
   ]
 }
