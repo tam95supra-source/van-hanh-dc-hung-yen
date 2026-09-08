@@ -11,7 +11,7 @@
     "dev": "python3 tools/render_wrangler.py && wrangler dev --config wrangler.generated.jsonc"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250823.0",
+    "@cloudflare/workers-types": "^5.20260907.1",
     "typescript": "^5.9.0",
     "wrangler": "^4.0.0"
   }
