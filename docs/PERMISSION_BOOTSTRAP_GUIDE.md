@@ -1,280 +1,254 @@
-# HƯỚNG DẪN CẤP QUYỀN MỘT LẦN — VẬN HÀNH DC HƯNG YÊN
+# CẤP QUYỀN MỘT LẦN — VẬN HÀNH DC HƯNG YÊN
 
-OWNER: Nguyễn Văn Tâm
+Mục tiêu: sau checklist này, ChatGPT + GitHub Actions có đủ quyền để tiếp tục tự động hóa repo, Cloudflare, Google Drive/Sheets/Gmail/Apps Script của dự án mới. Không cấp nhỏ giọt.
 
-Mục tiêu: cấp đủ quyền cần cho toàn vòng đời dự án ngay từ đầu, không xin quyền nhỏ giọt; vẫn giới hạn vào project/resource mới để tránh ảnh hưởng dự án khác.
+**Không gửi token/secret vào chat. Chỉ lưu trong GitHub Actions Secrets.**
 
-> Không paste API token, private key, client secret, refresh token hoặc password vào chat, issue, commit, Google Sheet hoặc log.
-
-## 1. GitHub — hiện đã đủ quyền ChatGPT cơ bản
+## 1. GitHub — gần như đã DONE
 
 Repo: `tam95supra-source/van-hanh-dc-hung-yen`
 
-Đã quan sát connector ChatGPT có admin + push trên repo mới. Không cần cấp lại repo cho ChatGPT ở thời điểm này.
+ChatGPT hiện đã có `admin + push` trên repo mới.
 
-OWNER kiểm tra thêm một lần trong GitHub:
+OWNER chỉ cần kiểm tra:
 
-1. Mở repo mới.
-2. `Settings` -> `Actions` -> `General`.
-3. Ở `Workflow permissions`, chọn **Read and write permissions**.
-4. Save.
-5. `Settings` -> `Secrets and variables` -> `Actions`.
-6. Sau các bước Cloudflare/Google bên dưới, thêm toàn bộ secret/variable một lượt.
+`Repo -> Settings -> Actions -> General`
 
-### Repository secrets cần chuẩn bị
+- Actions permissions: **Allow all actions and reusable workflows**.
+- Workflow permissions: **Read and write permissions**.
+- Bật **Allow GitHub Actions to create and approve pull requests** nếu có checkbox này.
 
-- `CF_API_TOKEN`
-- `GOOGLE_SERVICE_ACCOUNT_JSON`
-- `GOOGLE_OAUTH_CLIENT_SECRET` (nếu Gmail OAuth dùng client secret)
-- `GMAIL_REFRESH_TOKEN` (khi hoàn tất Gmail OAuth)
+Không cần tạo PAT GitHub riêng ở giai đoạn này. `GITHUB_TOKEN` của workflow sẽ dùng cho commit/release/PR trong chính repo.
 
-### Repository variables
+## 2. Cloudflare — tạo đúng 1 API token
 
-- `CF_ACCOUNT_ID`
-- `CF_ZONE_ID`
-- `GOOGLE_CLOUD_PROJECT_ID`
-- `PROJECT_ID=VAN_HANH_DC_HUNG_YEN`
-- `PRIMARY_DOMAIN=vanhanhdchungyen.cc.cd`
-- `DRIVE_ROOT_ID=19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh`
-- `SHARED_SHEET_ID=1Zaf48k1jAmmZDxQPdZMkXPgP_8BWScs4bF2nXt46lHM`
-- `GROUP_TEMPLATE_SHEET_ID=1QKu5gdLoJlMay40Rn4fefsrV29GLjaEz3_sehaDoRBU`
+Vào `Cloudflare -> My Profile -> API Tokens -> Create Token -> Create Custom Token`.
 
-GitHub secret value không thể đọc lại sau khi lưu; đây là hành vi đúng.
-
-## 2. Cloudflare — tạo một token mới dành riêng dự án
-
-Không dùng Global API Key.
-
-1. Đăng nhập Cloudflare.
-2. Vào **My Profile -> API Tokens** (hoặc Account API Tokens nếu account hỗ trợ và muốn service token không phụ thuộc user).
-3. `Create Token` -> `Create Custom Token`.
-4. Tên: `van-hanh-dc-hung-yen-deploy`.
-5. Cấp các quyền sau.
+Tên: `van-hanh-dc-hung-yen-automation`
 
 ### Account permissions
 
-- `Workers Scripts` -> `Write`
-- `Workers CI` -> `Write`
-- `D1` -> `Write`
-- `Workers Tail` -> `Read`
-- `Account Settings` -> `Read`
+| Permission | Level | Mục đích |
+|---|---|---|
+| Workers Scripts | Write | tạo/sửa/deploy Worker, Durable Object, Custom Domain |
+| D1 | Write | tạo DB, migration, query/write, backup/restore automation |
+| Workers Tail | Read | đọc log runtime |
+| Account Settings | Read | discovery/readback account |
+| Account Analytics | Read | đọc Workers/D1 usage để quota guard <=50% |
 
 ### Zone permissions
 
-- `Zone` -> `Read`
-- `DNS` -> `Write`
-- `Workers Routes` -> `Write`
+| Permission | Level | Mục đích |
+|---|---|---|
+| Zone | Read | resolve/verify zone |
+| DNS | Write | tạo/sửa DNS record khi cần |
+| Workers Routes | Write | route Worker nếu dùng route thay/custom domain |
 
 ### Resource scope
 
-- Account Resources: chỉ account đang chứa dự án.
-- Zone Resources: chỉ zone chứa `vanhanhdchungyen.cc.cd`.
+- Account Resources: **Include -> đúng Cloudflare account đang dùng**.
+- Zone Resources: **Include -> đúng zone chứa `vanhanhdchungyen.cc.cd`**.
 
-Không cấp:
-- Billing Write.
-- API Tokens Write.
-- quyền zone/account khác không liên quan.
-- R2 Write ở giai đoạn đầu vì R2 chưa là core dependency.
+Không cấp Billing Write, API Tokens Write, R2 Write, KV Write nếu chưa có requirement mới.
 
-6. Create token.
-7. Copy token đúng một lần.
-8. Mở GitHub repo mới -> `Settings -> Secrets and variables -> Actions -> New repository secret`.
-9. Tạo `CF_API_TOKEN` và paste token vào đó.
-10. Thêm `CF_ACCOUNT_ID` và `CF_ZONE_ID` ở tab **Variables**, không cần coi hai ID này là secret.
+Sau khi tạo token:
 
-Sau bước này AI/CI có thể tự tạo Worker/D1 mới và cấu hình route/domain mới trong phạm vi token.
+`GitHub repo -> Settings -> Secrets and variables -> Actions -> Secrets`
 
-## 3. Google Cloud — tạo project mới nhưng dùng account Google hiện tại
+Tạo:
 
-Tạo Google Cloud project mới dành riêng dự án. Không tái sử dụng project GCP của PICK PACK 1291.
+- `CF_API_TOKEN` = token vừa tạo.
 
-Tên hiển thị đề xuất: `Vận hành DC Hưng Yên`
+Tab Variables tạo:
 
-Project ID: chọn ID mới hợp lệ và duy nhất, ví dụ `van-hanh-dc-hung-yen-2026` nếu tên ngắn đã có người dùng.
+- `CF_ACCOUNT_ID`
+- `CF_ZONE_ID`
 
-### Enable APIs một lần
+Lưu ý: `Workers Scripts Write` và `D1 Write` là account-scoped, Cloudflare không khóa cứng được riêng từng Worker/D1 trong cùng account. Vì vậy repo có `PROJECT_BOUNDARY` fail-closed để cấm đụng PICK PACK 1291.
 
-Trong `APIs & Services -> Library`, bật:
+## 3. Google Cloud — tạo 1 project mới
 
-- Google Drive API
-- Google Sheets API
-- Gmail API
+Tạo project mới bằng tài khoản OWNER.
 
-Nếu sau này dùng API Google khác, chỉ thêm khi requirement mới thật sự cần; ba API trên là scope đã xác định hiện tại.
+Tên: `Vận hành DC Hưng Yên`
 
-## 4. Google Service Account — Drive + Sheets runtime
+Project ID: chọn ID duy nhất, ví dụ `van-hanh-dc-hung-yen-2026`.
 
-Tạo service account mới trong GCP project mới, ví dụ:
+Bật **4 API**:
 
-`van-hanh-runtime`
+1. Google Drive API
+2. Google Sheets API
+3. Gmail API
+4. Apps Script API
 
-Mục đích: Cloud Service/LAN sync worker thao tác Drive/Sheets của **project mới**.
+Không dùng Google Cloud project của PICK PACK 1291.
 
-### Tạo credential
+## 4. Google OAuth — cấp toàn bộ scope cần một lần
 
-1. `IAM & Admin -> Service Accounts`.
-2. Create service account.
-3. Không cần cấp Owner/Editor toàn GCP project nếu không cần.
-4. Tạo JSON key cho service account để runtime ngoài Google Cloud có thể ký OAuth token.
-5. Download file JSON một lần và giữ kín.
-6. GitHub repo mới -> Actions secrets -> tạo `GOOGLE_SERVICE_ACCOUNT_JSON`, paste toàn bộ JSON vào secret.
-7. Không commit file JSON.
+**Không dùng Service Account làm runtime Drive chính.** Runtime dùng OAuth của OWNER để file/ảnh tạo ra thuộc Google Drive của OWNER và dùng đúng quota Drive của OWNER.
 
-### Share Drive root cho service account
+Vào `Google Auth Platform` của project mới.
 
-Google Drive root dự án mới:
+### Branding / Audience
+
+- App name: `Vận hành DC Hưng Yên`
+- User support email: email OWNER
+- Audience: External nếu tài khoản cá nhân.
+- Publishing status: **In Production** trước khi lấy refresh token dùng lâu dài. Testing có refresh token thời hạn ngắn.
+- Nếu Google hiện cảnh báo app chưa verify và đây là personal-use app dưới 100 users, OWNER có thể tiếp tục authorize cho tài khoản của mình theo chính sách Google hiện hành.
+
+### Data Access — thêm chính xác 5 OAuth scopes
+
+```text
+https://www.googleapis.com/auth/drive
+https://www.googleapis.com/auth/spreadsheets
+https://www.googleapis.com/auth/gmail.send
+https://www.googleapis.com/auth/script.projects
+https://www.googleapis.com/auth/script.deployments
+```
+
+Ý nghĩa:
+
+- `drive`: tạo/đọc/sửa/xóa folder, ảnh, file, backup trong Drive. Đây là scope rộng cần thiết cho backend tự quản lý cây thư mục dự án không qua Google Picker; code bắt buộc fence bằng `DRIVE_ROOT_ID`.
+- `spreadsheets`: đọc/ghi/tạo/cập nhật các GSheet dùng chung và GSheet theo LAN Group.
+- `gmail.send`: **chỉ gửi mail**, không đọc inbox, không sửa/xóa mail.
+- `script.projects`: tạo và cập nhật source/manifests của Apps Script.
+- `script.deployments`: tạo/cập nhật deployment Apps Script.
+
+Không cấp: `gmail.readonly`, `gmail.modify`, `mail.google.com`.
+
+## 5. Tạo OAuth Client + refresh token một lần
+
+Trong `Google Auth Platform -> Clients`:
+
+1. `Create Client` -> **Web application**.
+2. Name: `VAN_HANH_DC_HUNG_YEN_AUTOMATION`.
+3. Authorized redirect URI thêm:
+
+```text
+https://developers.google.com/oauthplayground
+```
+
+4. Create.
+5. Ghi lại `Client ID` và `Client Secret`.
+
+Mở Google OAuth Playground:
+
+1. Bấm biểu tượng bánh răng.
+2. Bật **Use your own OAuth credentials**.
+3. Nhập Client ID + Client Secret của project mới.
+4. Step 1: dán cả 5 scope ở mục 4.
+5. `Authorize APIs` -> đăng nhập đúng tài khoản OWNER -> Allow.
+6. Step 2 -> `Exchange authorization code for tokens`.
+7. Copy **Refresh token**.
+
+GitHub Actions Secrets tạo đúng 3 secret:
+
+- `GOOGLE_OAUTH_CLIENT_ID`
+- `GOOGLE_OAUTH_CLIENT_SECRET`
+- `GOOGLE_OAUTH_REFRESH_TOKEN`
+
+Không cần `GOOGLE_SERVICE_ACCOUNT_JSON` và không cần `GMAIL_REFRESH_TOKEN` riêng: cùng refresh token đã chứa toàn bộ 5 scope.
+
+GitHub Actions Variables:
+
+- `GOOGLE_CLOUD_PROJECT_ID`
+- `GOOGLE_CLOUD_PROJECT_NUMBER`
+
+## 6. Google Drive / Sheets — quyền thực tế
+
+Drive root mới đã tạo:
+
 `VẬN HÀNH DC HƯNG YÊN`
 
-Folder ID:
-`19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh`
+Runtime OAuth là tài khoản OWNER nên không cần share folder cho service account.
 
-1. Mở folder root.
-2. Share.
-3. Nhập email của service account vừa tạo.
-4. Cấp **Editor**.
-5. Không share toàn My Drive.
+Luật runtime bắt buộc:
 
-Quyền folder sẽ kế thừa xuống tài nguyên con. Runtime chỉ được resolve ID từ `PROJECT_RESOURCE_REGISTRY`.
+- Chỉ resolve/read/write file nằm trong `PROJECT_RESOURCE_REGISTRY` và dưới `DRIVE_ROOT_ID` của dự án mới.
+- Không search theo tên rồi tự chọn file.
+- Không fallback sang Drive/Sheet PICK PACK 1291.
+- LAN Group nào chỉ ghi workbook/folder của LAN Group đó.
 
-### Runtime scopes
+## 7. Google Apps Script — tạo 1 lần để CI quản lý tiếp
 
-Drive/Sheets service identity sử dụng OAuth scopes cần thiết cho Drive/Sheets. Dù scope API có thể rộng để sửa file, ACL của service account chỉ nên cho thấy project root mới.
+Tạo `script.new` bằng tài khoản OWNER.
 
-## 5. Gmail API — quyền gửi mail, không đọc inbox
+Tên: `VẬN HÀNH DC HƯNG YÊN - SYSTEM`.
 
-Chức năng OTP/reset password chỉ cần gửi mail.
+Trong `Project Settings`:
 
-Scope mục tiêu:
-`https://www.googleapis.com/auth/gmail.send`
+- `Google Cloud Platform (GCP) Project` -> Change project.
+- Nhập **Project number** của Google Cloud project mới.
 
-Không cần `gmail.readonly`, `gmail.modify` hoặc quyền đọc hộp thư nếu requirement không đổi.
+Lấy `Script ID`, lưu vào GitHub Actions Variable:
 
-Với Gmail cá nhân, service account thông thường không tự impersonate mailbox. Vì vậy tạo OAuth client cho tài khoản Gmail OWNER và lấy refresh token send-only.
+- `GAS_SCRIPT_ID`
 
-### OAuth consent
+Apps Script manifest khi build sẽ được CI quản lý. Nếu GAS dùng `UrlFetchApp`, manifest sẽ có thêm runtime scope:
 
-1. GCP project mới -> `Google Auth Platform` / `OAuth consent screen`.
-2. App name: `Vận hành DC Hưng Yên`.
-3. User support/developer contact: email OWNER.
-4. Nếu ở Testing, thêm email OWNER vào Test users.
-5. Scope: chỉ `gmail.send` cho chức năng gửi mail.
+```text
+https://www.googleapis.com/auth/script.external_request
+```
 
-### OAuth client
+Các scope Drive/Sheets/Gmail dùng trong GAS sẽ bám đúng nghiệp vụ cần thiết; không dùng `mail.google.com`.
 
-1. `Credentials -> Create credentials -> OAuth client ID`.
-2. Tạo client phù hợp flow lấy refresh token của backend.
-3. Lưu Client ID; Client Secret là secret.
-4. Sau khi OWNER authorize Gmail send, lưu refresh token vào GitHub secret `GMAIL_REFRESH_TOKEN`.
-5. Lưu client secret vào `GOOGLE_OAUTH_CLIENT_SECRET` nếu implementation yêu cầu.
+Sau lần deploy đầu, CI sẽ ghi `GAS_DEPLOYMENT_ID` vào registry/variable nếu cần.
 
-Không paste refresh token/client secret vào chat.
+## 8. Secrets / Variables cuối cùng cần có
 
-## 6. Google Apps Script — tạo project mới, không dùng GAS cũ
+### GitHub Actions Secrets
 
-GAS không dùng làm hot path realtime. Chỉ giữ cho compatibility/admin/recovery job khi kiến trúc yêu cầu.
+```text
+CF_API_TOKEN
+GOOGLE_OAUTH_CLIENT_ID
+GOOGLE_OAUTH_CLIENT_SECRET
+GOOGLE_OAUTH_REFRESH_TOKEN
+```
 
-1. Mở `script.new` bằng account OWNER.
-2. Tên project: `VẬN HÀNH DC HƯNG YÊN - SYSTEM`.
-3. Trong Project Settings, liên kết với **Google Cloud project mới** ở trên.
-4. Di chuyển Apps Script file vào folder `06_HỆ_THỐNG` của Drive mới nếu Drive UI cho phép.
-5. Chưa deploy web app cho tới khi code/system contract được tạo.
+### GitHub Actions Variables
 
-Không dùng Script ID/deployment của PICK PACK 1291.
+```text
+CF_ACCOUNT_ID
+CF_ZONE_ID
+GOOGLE_CLOUD_PROJECT_ID
+GOOGLE_CLOUD_PROJECT_NUMBER
+GAS_SCRIPT_ID
+```
 
-## 7. Google Drive/Sheets mới — đã tạo
+Các ID Drive/Sheet/domain/resource khác lấy từ `ops/PROJECT_RESOURCE_REGISTRY.json`; không nhân bản thành nhiều nguồn authority.
 
-Root:
-- `VẬN HÀNH DC HƯNG YÊN`
+## 9. ChatGPT — quyền hiện tại
 
-Cây chính:
-- `00_DỮ_LIỆU_DÙNG_CHUNG`
-- `01_NGHIỆP_VỤ_THEO_LAN_GROUP`
-- `02_ẢNH_VÀ_BIÊN_BẢN_THEO_GROUP`
-- `03_LOG`
-- `04_BACKUP`
-- `05_XUẤT_DỮ_LIỆU`
-- `06_HỆ_THỐNG`
+- GitHub connector: **PASS — admin + push repo mới**.
+- Google Drive connector: **PASS — đã tạo folder/Sheet mới**.
+- Cloudflare: không có connector provisioning phù hợp; GitHub Actions dùng `CF_API_TOKEN` để tự động hóa.
+- Google runtime: GitHub Actions dùng 3 OAuth secrets ở trên.
 
-GSheet mới:
-- `DỮ LIỆU DÙNG CHUNG - VẬN HÀNH DC HƯNG YÊN`
-- `MẪU NGHIỆP VỤ LAN GROUP - VẬN HÀNH DC HƯNG YÊN`
+OWNER không cần gửi bất kỳ secret nào cho ChatGPT.
 
-LAN Group thực tế sẽ được SUPERADMIN tạo/assign. Mỗi group sẽ có workbook + folder ảnh/biên bản riêng được đăng ký bằng ID.
+## 10. Checklist OWNER — chỉ cần làm 8 việc
 
-## 8. Domain
+1. GitHub Actions = `Read and write permissions` + cho phép Actions tạo PR.
+2. Tạo Cloudflare token đúng 8 permission ở mục 2; lưu `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `CF_ZONE_ID`.
+3. Tạo Google Cloud project mới.
+4. Bật Drive API + Sheets API + Gmail API + Apps Script API.
+5. Google Auth Platform: thêm đúng 5 OAuth scope và chuyển `In Production`.
+6. Tạo OAuth Web Client + lấy refresh token qua OAuth Playground; lưu 3 Google secrets.
+7. Tạo Apps Script project mới, link đúng Google Cloud Project Number, lưu `GAS_SCRIPT_ID`.
+8. Báo `1-8 OK`; không gửi giá trị token/secret.
 
-Domain chính đã có:
-`vanhanhdchungyen.cc.cd`
+Sau 1-8 OK, AI/CI có thể tiếp tục tự tạo Worker/D1, deploy service, quản lý Google Drive/Sheets/GAS, quota readback, backup/restore và các resource mới theo PROJECT_BOUNDARY mà không cần xin quyền lặt vặt.
 
-Không cần tạo account/domain mới.
-
-Khi Cloudflare token PASS, CI sẽ tạo Worker mới và attach Custom Domain/route mới. Không reuse Worker của PICK PACK 1291.
-
-Beta domain đề xuất giữ sẵn:
-`beta.vanhanhdchungyen.cc.cd`
-
-Chưa public Stable cho tới khi OWNER chốt release sau này.
-
-## 9. Những thứ không thể hoặc không nên "tạo account mới" trong cùng mô hình
-
-Các container/account sau được dùng chung nhưng resource bên trong tách mới:
-
-- GitHub user account: dùng account hiện tại, repo mới.
-- Cloudflare account: dùng account hiện tại, Worker/D1/resource mới.
-- Cloudflare DNS zone chứa domain: dùng zone hiện tại; chỉ record/route dự án mới tách riêng.
-- Google account / My Drive quota: dùng account hiện tại; folder/resource mới nhưng storage quota vẫn dùng chung account.
-- Gmail mailbox/quota: dùng mailbox hiện tại; OAuth/GCP project mới nhưng mailbox quota không trở thành quota độc lập.
-- Apps Script user quota: project GAS mới nhưng một số quota vẫn tính theo user/account.
-
-Vì vậy xóa PICK PACK 1291 sau này có thể dọn resource và ngăn traffic cũ tiêu quota, nhưng không biến các quota cấp account/user thành quota mới.
-
-## 10. Resource có thể tạo mới hoàn toàn song song
-
-- GitHub repository: DONE.
-- Google Drive project root: DONE.
-- Google Sheets shared/template: DONE.
-- Google Cloud project: PENDING OWNER.
-- OAuth client: PENDING OWNER.
-- Service account: PENDING OWNER.
-- Apps Script project: PENDING OWNER.
-- Cloudflare Worker: sẽ tự tạo sau CF token.
-- Cloudflare D1 DB: sẽ tự tạo sau CF token.
-- Cloudflare custom domain/route: sẽ tự cấu hình sau CF token.
-- GitHub Actions workflow/CI: đang được bootstrap trong repo mới.
-- LAN cluster/node identities: sẽ sinh trong quá trình build LAN control plane.
-- Android signer/APK: DEFERRED theo lệnh OWNER.
-
-## 11. PICK PACK 1291
-
-Hiện tại:
-- chỉ đọc tham khảo;
-- cấm commit/push/delete/deploy;
-- cấm dùng runtime resource cũ làm fallback;
-- chưa xóa.
-
-Chỉ sau dự án mới DONE + backup/readback/acceptance PASS + OWNER ra lệnh retire thì mới xóa project/resource cũ.
-
-## 12. Khi OWNER hoàn tất quyền
-
-OWNER chỉ cần báo các bước đã hoàn thành, không gửi secret value.
-
-Tối thiểu cần xác nhận:
-1. `CF_API_TOKEN` đã nằm trong GitHub Actions secret.
-2. `CF_ACCOUNT_ID`, `CF_ZONE_ID` đã nằm trong GitHub variables.
-3. Google Cloud project mới đã tạo + 3 API đã bật.
-4. Service account đã tạo, JSON đã vào `GOOGLE_SERVICE_ACCOUNT_JSON`, và service account đã được Editor trên Drive root mới.
-5. OAuth Gmail send-only đã tạo; refresh token/client secret đã vào GitHub secrets khi sẵn sàng.
-6. Apps Script project mới đã tạo/link GCP project mới.
-
-Sau đó AI/CI tiếp tục provisioning và verify tự động.
-
-## Official references
+## Nguồn chính thức đã rà 08/09/2026
 
 - Cloudflare API token permissions: https://developers.cloudflare.com/fundamentals/api/reference/permissions/
-- Cloudflare token creation: https://developers.cloudflare.com/fundamentals/api/get-started/create-token/
-- Cloudflare D1 create: https://developers.cloudflare.com/d1/tutorials/build-a-comments-api/
-- Cloudflare Workers Custom Domains: https://developers.cloudflare.com/workers/configuration/routing/custom-domains/
-- GitHub Actions secrets: https://docs.github.com/en/actions/concepts/security/secrets
+- Cloudflare D1 create permission: https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/create/
+- Cloudflare Worker custom domains: https://developers.cloudflare.com/workers/configuration/routing/custom-domains/
+- Cloudflare Analytics token: https://developers.cloudflare.com/analytics/graphql-api/getting-started/authentication/api-token-auth/
 - Google Drive API: https://developers.google.com/workspace/drive/api/
 - Google Sheets API: https://developers.google.com/workspace/sheets/api/
-- Gmail API: https://developers.google.com/workspace/gmail/api/
+- Gmail OAuth scopes: https://developers.google.com/resources/api-libraries/documentation/gmail/v1/java/latest/com/google/api/services/gmail/GmailScopes.html
+- Apps Script OAuth scopes: https://developers.google.com/resources/api-libraries/documentation/script/v1/java/latest/com/google/api/services/script/ScriptScopes.html
+- Google OAuth testing/production token behavior: https://developers.google.com/health/setup
+- GitHub Actions secrets: https://docs.github.com/en/actions/concepts/security/secrets
