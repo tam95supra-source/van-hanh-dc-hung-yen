@@ -27,12 +27,24 @@
       "exports": {"id": "1bdAYoBsiTiazjRNNzNENAlVTmfx5HkJk", "name": "05_XUẤT_DỮ_LIỆU"},
       "system": {"id": "11vugBaVm9vHYlW-IC3zRntJbofDdw-7T", "name": "06_HỆ_THỐNG"}
     },
-    "sheets": {},
+    "sheets": {
+      "shared_data": {
+        "id": "1Zaf48k1jAmmZDxQPdZMkXPgP_8BWScs4bF2nXt46lHM",
+        "name": "DỮ LIỆU DÙNG CHUNG - VẬN HÀNH DC HƯNG YÊN",
+        "role": "SHARED_REFERENCE_AND_CONFIGURATION"
+      },
+      "lan_group_template": {
+        "id": "1QKu5gdLoJlMay40Rn4fefsrV29GLjaEz3_sehaDoRBU",
+        "name": "MẪU NGHIỆP VỤ LAN GROUP - VẬN HÀNH DC HƯNG YÊN",
+        "role": "TEMPLATE_ONLY_DO_NOT_USE_AS_SHARED_RUNTIME_WORKBOOK"
+      }
+    },
     "lan_groups": {}
   },
   "github": {
     "repo": "tam95supra-source/van-hanh-dc-hung-yen",
-    "default_branch": "main"
+    "default_branch": "main",
+    "chatgpt_connector_access": "ADMIN_PUSH_VERIFIED"
   },
   "cloud": {
     "provider_resources": {},
