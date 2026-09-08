@@ -11,6 +11,18 @@ Status: `DONE`
 - [x] Tạo checkpoint state tối giản.
 - [x] Tạo ledger/decision/run log.
 
+## BOOTSTRAP-002 — Song song, live version và changelog bất biến
+
+Status: `DONE`
+
+- [x] Bổ sung nguyên tắc phân tích dependency và ưu tiên chạy song song các bước độc lập.
+- [x] Quy định các shared-state write/dependency/destructive step phải chạy tuần tự khi cần để tránh race condition.
+- [x] Tạo `ops/ai/VERSION_POLICY.md`.
+- [x] Quy định `live_beta` và `live_stable` phải phản ánh public thực tế mới nhất sau khi xác minh.
+- [x] Quy định nếu chưa xác minh được thì dùng `UNVERIFIED`/`UNKNOWN`, không dùng version cũ như live hiện tại.
+- [x] Tạo kho `changelogs/` tách beta/stable.
+- [x] Quy định changelog mỗi version phải được giữ lâu dài, không xóa lịch sử.
+
 ## NEXT
 
 Chưa có task triển khai code nghiệp vụ được phê duyệt.
@@ -19,5 +31,6 @@ Khi có task mới:
 
 1. Tạo ID task mới.
 2. Ghi mục tiêu và trạng thái `PENDING`/`IN_PROGRESS`.
-3. Chia thành atomic steps đủ nhỏ để checkpoint thường xuyên.
-4. Cập nhật `CURRENT_STATE.md` để `read_next` chỉ trỏ đúng tài liệu cần thiết.
+3. Lập dependency graph ngắn; nhóm bước độc lập để chạy song song an toàn.
+4. Chia các nhánh thành atomic steps đủ nhỏ để checkpoint thường xuyên.
+5. Cập nhật `CURRENT_STATE.md` để `read_next` chỉ trỏ đúng tài liệu cần thiết.
