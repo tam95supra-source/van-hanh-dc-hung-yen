@@ -105,4 +105,12 @@
 - Cloudflare docs xác nhận account workers.dev subdomain có thể cấu hình/đổi trong Dashboard, nhưng không đảm bảo một tên cụ thể khả dụng.
 - Chưa có bằng chứng Workers.dev toàn account bị hỏng; bước an toàn là thử đúng `vanhanhdchungyen`. Nếu vẫn thất bại, giữ `1291.workers.dev` và tiếp tục bằng Worker URLs dưới subdomain này; không DELETE/ép recreate.
 
+## 2026-09-10 11:23 +07 — SETUP-001 / CLOUDFLARE ACCOUNT SUSPENDED
+
+- Owner cung cấp email chính thức của Cloudflare với tiêu đề `[Alert] Your account has been suspended` và nội dung `Account suspended for Terms of Service review`.
+- Email nêu rõ: account bị suspend vì possible Terms of Service violation; current services không bị ảnh hưởng; account không thể add new domains trong thời gian review; Trust & Safety contact là `abusereply@cloudflare.com`.
+- Đây là bằng chứng trực tiếp giải thích vì sao `Add site` bị chặn. Chẩn đoán trước về zone availability/scope không còn là nguyên nhân chính.
+- Lỗi rename `workers.dev` có thể liên quan suspension, nhưng email không nói rõ operation này nên chưa được coi là proven.
+- Quyết định vận hành: dừng retry các Cloudflare domain/subdomain mutations cho tới khi Trust & Safety gỡ suspension; tiếp tục S3 Google/S6 Android hoặc chuyển fallback cloud provider nếu Owner không muốn chờ.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
