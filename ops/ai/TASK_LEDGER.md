@@ -59,13 +59,14 @@ Dependency/order và trạng thái thực tế:
 5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; phụ thuộc S3; Bootstrap Kit đã sẵn.
 6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs lưu tại `ops/setup/RESOURCE_REGISTRY.md`; mỗi env đã readback đủ `00_SHARED..07_SYSTEM`.
 7. [ ] `S6` Android Beta/Stable signing + encrypted backup — PENDING/OWNER-CONTROLLED.
-8. [ ] `S7` Lock P1 contracts: IDs/event/permission/API/schema/release — chỉ bắt đầu sau khi SETUP-001 đủ điều kiện.
-9. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams chạy song song theo contract.
+8. [x] `LAN-PLAN` HY1/HY2 Probe plan — READY 2026-09-10 tại `ops/setup/LAN_PROBE_PLAN.md`; physical test vẫn OPEN.
+9. [ ] `S7` Lock P1 contracts: IDs/event/permission/API/schema/release — chỉ bắt đầu sau khi SETUP-001 đủ điều kiện.
+10. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams chạy song song theo contract.
 
 Empirical gates, không phải câu hỏi kiến trúc:
-- `LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE`
-- `FREE_PLAN_CAPACITY_REQUIRES_BETA_STRESS_SOAK_MEASUREMENT`
+- `LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE` — PLAN READY, TEST NOT RUN.
+- `FREE_PLAN_CAPACITY_REQUIRES_BETA_STRESS_SOAK_MEASUREMENT` — NOT RUN.
 
 ## NEXT
 
-Owner hoàn tất/confirm S1 GitHub Environments trước; đồng thời có thể thực hiện S2 Cloudflare, S3 Google Cloud/OAuth và S6 Android signing. AI không làm lại S5. Sau mỗi nhóm Owner cung cấp ID/non-secret status hoặc khi connector có thể readback, checkpoint ngay.
+Owner hoàn tất/confirm S1 GitHub Environments trước; đồng thời có thể thực hiện S2 Cloudflare, S3 Google Cloud/OAuth và S6 Android signing. AI không làm lại S5 hoặc viết lại LAN Probe plan. Sau mỗi nhóm Owner cung cấp ID/non-secret status hoặc khi connector có thể readback, checkpoint ngay.
