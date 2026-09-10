@@ -38,4 +38,16 @@
 - Lưu `ops/ai/HANDOFF_NEXT_CHAT.md` để mở phiên chat mới và resume thẳng `SETUP-001`.
 - Runbook setup được cập nhật V2; không phát sinh câu hỏi kiến trúc mới.
 
+## 2026-09-10 09:08 +07 — SETUP-001 / S5 DRIVE PASS
+
+- Đã đọc lại bootstrap/current state/decisions/task ledger/Sheets model từ GitHub trước khi thực thi.
+- GitHub checkpoint xác nhận SETUP-001 mới ở READY; live beta/stable vẫn NOT_DEPLOYED.
+- GitHub connector hiện tại không expose Environments/Secrets admin API; S1 không được suy đoán PASS và cần Owner thao tác UI hoặc tool có quyền tương ứng.
+- Xác minh Drive project root `VẬN HÀNH DC HƯNG YÊN` đúng ID `19r3s_kTjzncRdzffNntcePW5YZQ5Dxuh`, private, Owner đúng tài khoản đã chốt.
+- Giữ nguyên toàn bộ setup-era folders `00...06`, không xóa.
+- Tạo mới và readback PASS `10_RUNTIME_BETA` + `20_RUNTIME_STABLE`; mỗi root đủ `00_SHARED`, `01_CLUSTERS`, `02_MEDIA`, `03_ARCHIVE`, `04_BACKUP`, `05_LOG`, `06_EXPORT`, `07_SYSTEM`.
+- BETA root ID `1EpUI49xbFUtgzR3mh3M0EQu7qYYsswB5`; STABLE root ID `1c6RNTOHOzaX6GrQFOEd64h9rndPoeiFI`.
+- Tạo `ops/setup/RESOURCE_REGISTRY.md`; chỉ lưu non-secret IDs/status.
+- SETUP-001 chuyển IN_PROGRESS; S5 DONE; S1/S2/S3/S4/S6 còn pending theo dependency.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
