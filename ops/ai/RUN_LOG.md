@@ -20,4 +20,22 @@
 - Changelog theo version là lịch sử phải lưu giữ; không xóa version cũ và không âm thầm ghi đè lịch sử.
 - Lần checkpoint đầu của BOOTSTRAP-002 bị connector chặn; đã đọc lại state và checkpoint lại thành công trước khi tiếp tục.
 
+## 2026-09-10 07:44 +07 — SPEC-V2 / SETUP_READY
+
+- Owner chốt đủ Core toàn DC và cluster Pick Pack 1291 đầu tiên.
+- Pick Pack 1291 cũ được READ/REUSE có chọn lọc làm strong reference; không write/deploy/runtime fallback.
+- Không migrate dữ liệu cũ vì là test data.
+- LAN feasibility và Free Plan capacity chuyển thành empirical gates.
+- Phase chuyển `SETUP_READY`; code status `APPROVED_FOR_SETUP_AND_IMPLEMENTATION`.
+
+## 2026-09-10 08:39 +07 — DOC-SHEETS-001 / HANDOFF
+
+- Tham khảo schema/tab Pick Pack 1291 cũ để thiết kế Google Sheets mới cho cluster Pick Pack 1291.
+- Sheets mới giữ vai trò projection/human-readable archive, one-writer + outbox/batch; không làm authority.
+- Baseline workbook theo `environment + cluster_id + quarter`, gồm master snapshots, RA/VÀO, resource events, công nhật, lịch sử, DO/hàng rớt, biên bản metadata, conflict/correction, import audit.
+- Old `Danh sách Admin` và LAN/fallback technical tabs không được bê thành authority workbook nghiệp vụ mới.
+- Lưu `ops/setup/GOOGLE_SHEETS_MODEL_PICKPACK1291.md`.
+- Lưu `ops/ai/HANDOFF_NEXT_CHAT.md` để mở phiên chat mới và resume thẳng `SETUP-001`.
+- Runbook setup được cập nhật V2; không phát sinh câu hỏi kiến trúc mới.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
