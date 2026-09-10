@@ -101,7 +101,7 @@ Beta/Stable tách Worker, D1, DO state, package/session/local DB, Google Cloud/O
 
 Status: `ACTIVE`
 
-Stable Cloud `vanhanhdchungyen.cc.cd`; Beta Cloud `beta.vanhanhdchungyen.cc.cd`. LAN preferred `lan.vanhanhdchungyen.cc.cd` và `beta-lan.vanhanhdchungyen.cc.cd` chỉ dùng local nếu hạ tầng cho phép; không attach Worker public; localhost proxy là fallback.
+Stable Cloud canonical target `vanhanhdchungyen.cc.cd`; Beta Cloud canonical target `beta.vanhanhdchungyen.cc.cd`. LAN preferred `lan.vanhanhdchungyen.cc.cd` và `beta-lan.vanhanhdchungyen.cc.cd` chỉ dùng local nếu hạ tầng cho phép; không attach Worker public; localhost proxy là fallback. Khi custom zone chưa khả dụng, D-025 cho phép public Cloud chạy tạm qua `workers.dev`; canonical custom-domain targets không bị thay thế.
 
 ## D-018 — Free-first
 
@@ -144,3 +144,15 @@ Drive long-term; Sheets projection; JSONL.gz + manifest/checksum + workbook theo
 Status: `ACTIVE`
 
 Từ checkpoint 2026-09-10, dự án chuyển `SETUP_READY` / `APPROVED_FOR_SETUP_AND_IMPLEMENTATION`. Bước tiếp theo là one-time service/permission setup, sau đó khóa contracts và triển khai các workstream song song.
+
+## D-025 — Interim Cloudflare workers.dev
+
+Status: `ACTIVE`
+
+Do Cloudflare đang chặn tạo custom zone `vanhanhdchungyen.cc.cd`, OWNER chốt tiếp tục build/test Cloud qua `workers.dev` trong thời gian chờ review. Account Workers subdomain mục tiêu là `vanhanhdchungyen.workers.dev` nếu tên còn khả dụng.
+
+Giữ nguyên Worker resource names theo Runbook: `vhdchy-beta` và `vhdchy-stable`. Vì `workers.dev` bắt buộc URL theo `<worker-name>.<account-subdomain>.workers.dev`, interim public URLs tương ứng sẽ là:
+- Beta: `vhdchy-beta.vanhanhdchungyen.workers.dev`
+- Stable target: `vhdchy-stable.vanhanhdchungyen.workers.dev`
+
+Không đổi Worker names thành `beta`/`stable` chỉ để rút gọn URL. Không public LAN qua `workers.dev`; LAN vẫn dùng local DNS preferred names theo D-017 hoặc localhost fallback. Khi custom zone được Cloudflare cho phép, attach canonical custom domains theo D-017 và coi `workers.dev` là fallback/test route, không phải production canonical domain dài hạn.
