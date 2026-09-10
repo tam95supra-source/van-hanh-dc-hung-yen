@@ -1,0 +1,96 @@
+name: Setup Verify Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/setup-verify-cloudflare.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-beta:
+    name: Verify Cloudflare BETA
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - name: Verify token and resolve account/zone IDs
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          EXPECTED_ZONE: vanhanhdchungyen.cc.cd
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CF_TOKEN:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is missing in beta environment"
+            exit 1
+          fi
+
+          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" https://api.cloudflare.com/client/v4/user/tokens/verify)"
+          echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
+
+          accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
+          echo "${accounts_json}" | jq -e '.success == true' >/dev/null
+          account_count="$(echo "${accounts_json}" | jq '.result | length')"
+          if [ "${account_count}" -lt 1 ]; then
+            echo "::error::Token cannot read any scoped Cloudflare account"
+            exit 1
+          fi
+          account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+
+          zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" --data-urlencode "account.id=${account_id}" 'https://api.cloudflare.com/client/v4/zones')"
+          echo "${zones_json}" | jq -e '.success == true' >/dev/null
+          zone_count="$(echo "${zones_json}" | jq '.result | length')"
+          if [ "${zone_count}" -ne 1 ]; then
+            echo "::error::Expected exactly one scoped zone ${EXPECTED_ZONE}, got ${zone_count}"
+            exit 1
+          fi
+          zone_id="$(echo "${zones_json}" | jq -r '.result[0].id')"
+
+          echo "BETA_CLOUDFLARE_TOKEN=PASS"
+          echo "CF_ACCOUNT_ID=${account_id}"
+          echo "CF_ZONE_ID=${zone_id}"
+
+  verify-stable:
+    name: Verify Cloudflare STABLE
+    runs-on: ubuntu-latest
+    environment: stable
+    steps:
+      - name: Verify token and resolve account/zone IDs
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          EXPECTED_ZONE: vanhanhdchungyen.cc.cd
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CF_TOKEN:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is missing in stable environment"
+            exit 1
+          fi
+
+          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" https://api.cloudflare.com/client/v4/user/tokens/verify)"
+          echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
+
+          accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
+          echo "${accounts_json}" | jq -e '.success == true' >/dev/null
+          account_count="$(echo "${accounts_json}" | jq '.result | length')"
+          if [ "${account_count}" -lt 1 ]; then
+            echo "::error::Token cannot read any scoped Cloudflare account"
+            exit 1
+          fi
+          account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+
+          zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" --data-urlencode "account.id=${account_id}" 'https://api.cloudflare.com/client/v4/zones')"
+          echo "${zones_json}" | jq -e '.success == true' >/dev/null
+          zone_count="$(echo "${zones_json}" | jq '.result | length')"
+          if [ "${zone_count}" -ne 1 ]; then
+            echo "::error::Expected exactly one scoped zone ${EXPECTED_ZONE}, got ${zone_count}"
+            exit 1
+          fi
+          zone_id="$(echo "${zones_json}" | jq -r '.result[0].id')"
+
+          echo "STABLE_CLOUDFLARE_TOKEN=PASS"
+          echo "CF_ACCOUNT_ID=${account_id}"
+          echo "CF_ZONE_ID=${zone_id}"
