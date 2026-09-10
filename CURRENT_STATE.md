@@ -4,8 +4,8 @@
 project: "VẬN HÀNH DC HƯNG YÊN"
 repository: "tam95supra-source/van-hanh-dc-hung-yen"
 branch: "main"
-state_revision: 8
-last_checkpoint_at: "2026-09-10T09:27:00+07:00"
+state_revision: 9
+last_checkpoint_at: "2026-09-10T10:34:00+07:00"
 phase: "SETUP_READY"
 code_status: "APPROVED_FOR_SETUP_AND_IMPLEMENTATION"
 
@@ -15,14 +15,15 @@ current_task:
   status: "IN_PROGRESS"
 
 last_completed_step:
-  id: "SETUP-001-S1A-GITHUB-ENVIRONMENTS"
-  summary: "Owner xác nhận đã tạo GitHub Environments beta và stable. Connector hiện tại không expose Environment admin/secrets readback nên ghi CREATED_OWNER_CONFIRMED; secrets/variables vẫn pending."
+  id: "SETUP-001-S2-CLOUDFLARE-BETA-VALIDATION"
+  summary: "Đã chạy GitHub Actions kiểm tra thật Cloudflare BETA. Secret tồn tại và token qua account/token verification, nhưng target zone vanhanhdchungyen.cc.cd trả 0 accessible zones. S2 chưa PASS; cần sửa Zone resource/scope. Stable validation đang chờ required reviewer."
 
 next_step:
-  summary: "Tiếp tục S2 Cloudflare và S3 Google Cloud/OAuth song song; S6 Android signing độc lập nhưng Owner-controlled. Khi provider IDs/credentials sẵn, nhập GitHub environment secrets/variables để đóng S1. S4 Apps Script phụ thuộc S3."
+  summary: "Owner sửa cả 2 Cloudflare token để Zone resource bao gồm đúng vanhanhdchungyen.cc.cd và có Zone Read + DNS Write + Workers Routes Write; sau đó rerun workflow xác minh để lấy CF_ACCOUNT_ID/CF_ZONE_ID. Song song có thể bắt đầu S3 Google Cloud/OAuth và S6 Android signing."
 
 do_not_repeat:
-  - "Không yêu cầu tạo lại GitHub Environments beta/stable; Owner đã xác nhận tạo xong."
+  - "Không tạo lại GitHub Environments beta/stable; workflow đã xác nhận tồn tại."
+  - "Không tạo lại hai Cloudflare token nếu dashboard cho phép Edit token; sửa resource/scope hiện có trước."
   - "Không tạo lại Drive runtime roots 10_RUNTIME_BETA / 20_RUNTIME_STABLE hoặc các child folders đã PASS."
   - "Không viết lại LAN Probe plan từ đầu; tiếp tục bằng build Probe và test HY1/HY2 khi đến bước thực thi."
   - "Không khôi phục code/config/workflow cũ đã bị loại khỏi main như authority của dự án mới."
@@ -39,7 +40,7 @@ do_not_repeat:
 read_next:
   - "ops/ai/TASK_LEDGER.md"
   - "ops/setup/RESOURCE_REGISTRY.md"
-  - "ops/setup/LAN_PROBE_PLAN.md"
+  - ".github/workflows/setup-verify-cloudflare.yml"
   - "ops/setup/GOOGLE_SHEETS_MODEL_PICKPACK1291.md"
   - "ops/ai/RUN_LOG.md"
 
@@ -47,23 +48,18 @@ live_beta: "NOT_DEPLOYED"
 live_stable: "NOT_DEPLOYED"
 known_blockers:
   - "SETUP_S1_ENV_SECRETS_VARIABLES_PENDING_PROVIDER_VALUES"
-  - "SETUP_S2_CLOUDFLARE_OWNER_UI_REQUIRED_FOR_TOKEN_CREATION"
+  - "SETUP_S2_CLOUDFLARE_ZONE_SCOPE_FIX_REQUIRED"
   - "SETUP_S3_GOOGLE_GCP_OAUTH_OWNER_UI_REQUIRED"
   - "SETUP_S6_ANDROID_SIGNING_OWNER_CONTROLLED"
   - "LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE"
   - "FREE_PLAN_CAPACITY_REQUIRES_BETA_STRESS_SOAK_MEASUREMENT"
 
 notes:
-  - "GitHub Environments beta/stable: CREATED_OWNER_CONFIRMED 2026-09-10; no independent connector admin readback available."
+  - "Cloudflare validation workflow=.github/workflows/setup-verify-cloudflare.yml. Run 34433999726 proved BETA token/account verification then zone_count=0. Run 34434041556 confirmed target zone inaccessible."
+  - "GitHub environments beta/stable are operationally verified by workflow resolution; stable required-reviewer protection is active."
   - "Drive project root owner/private readback PASS. BETA root ID=1EpUI49xbFUtgzR3mh3M0EQu7qYYsswB5; STABLE root ID=1c6RNTOHOzaX6GrQFOEd64h9rndPoeiFI."
-  - "Public beta/stable hostnames did not resolve during 2026-09-10 setup verification; consistent with NOT_DEPLOYED. LAN hostnames also intentionally unresolved publicly."
+  - "Public beta/stable remain NOT_DEPLOYED. LAN hostnames remain intentionally non-public."
   - "LAN Probe plan file: ops/setup/LAN_PROBE_PLAN.md; plan READY, empirical gate OPEN."
   - "GitHub checkpoint là nguồn trạng thái công việc chính thức; trí nhớ chat chỉ là tạm thời."
-  - "Platform scope = toàn DC; cluster = team/operational boundary; feature/permission linh hoạt."
-  - "Cluster đầu tiên = Pick Pack 1291; business source/logic cũ là strong read-only reference."
-  - "Sheets model Pick Pack 1291 đã được generalize theo Core mới: workbook env+cluster+quarter; master snapshot + append-only business/history tabs; old technical/admin tabs không làm authority."
-  - "Sau Pick Pack Beta PASS -> Stable; sau đó tiếp tục Beta cluster khác như Invent 1291."
-  - "Checkpoint mục tiêu <=15 phút; soft batch limit 18 phút."
   - "Ưu tiên chạy song song các bước độc lập; serialize khi có dependency/shared mutable state/race risk."
-  - "Beta/stable live chỉ ghi sau public readback. Changelog bất biến theo version."
 ```
