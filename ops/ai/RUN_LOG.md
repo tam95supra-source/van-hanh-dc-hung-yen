@@ -88,4 +88,14 @@
 - Không khuyến nghị tạo account khác để né restriction. Dùng review/support path chính thức, kèm bằng chứng quyền kiểm soát domain trong DNSHE.
 - Trong lúc chờ Cloudflare review, S3 Google Cloud/OAuth và S6 Android signing vẫn độc lập và có thể tiếp tục.
 
+## 2026-09-10 10:59 +07 — SETUP-001 / WORKERS.DEV INTERIM ROUTE
+
+- OWNER chốt dùng `workers.dev` làm public Cloud route tạm trong lúc custom zone bị Cloudflare review; ghi D-025.
+- Giữ Worker names theo Runbook: `vhdchy-beta` / `vhdchy-stable`; không đổi thành `beta`/`stable` chỉ để rút ngắn URL. LAN không public qua workers.dev.
+- Tạo `.github/workflows/setup-workers-dev.yml` và dùng BETA Cloudflare secret để tự đọc account/subdomain.
+- Run `34435410482` xác minh `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76`, account hiện có `1291.workers.dev`.
+- API PUT đổi account subdomain sang `vanhanhdchungyen` trả HTTP 409 / Cloudflare `10036: Account already has an associated subdomain`.
+- Không DELETE subdomain `1291` bằng API vì có rủi ro mất tên hiện tại và target chưa chắc khả dụng. Cloudflare docs cho phép đổi an toàn trong Dashboard: Workers & Pages -> Change next to Your subdomain.
+- Sau khi Owner đổi dashboard thành `vanhanhdchungyen` (nếu available), AI sẽ readback rồi tiếp tục account-level Worker/D1 setup; custom-zone review tiếp tục độc lập.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
