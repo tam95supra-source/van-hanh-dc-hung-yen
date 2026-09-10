@@ -11,20 +11,37 @@ Verified by setup workflow execution 2026-09-10:
 
 ## Cloudflare
 
-### BETA — FIX_REQUIRED
+### Account — VERIFIED 2026-09-10
+
+- `CF_ACCOUNT_ID`: `d79b87776e86d8edc8f4a0a94302ca76`
+- Current account `workers.dev` subdomain: `1291.workers.dev`
+- OWNER-approved target account subdomain: `vanhanhdchungyen.workers.dev`
+- API change attempt via run `34435410482` returned HTTP 409 / Cloudflare `10036: Account already has an associated subdomain`.
+- Cloudflare dashboard documentation supports changing the account subdomain via Workers & Pages -> Change next to Your subdomain; manual dashboard change is required rather than deleting the existing subdomain by API.
+- Canonical Worker names remain `vhdchy-beta` / `vhdchy-stable`.
+- Interim URL format after successful account-subdomain change: `vhdchy-beta.vanhanhdchungyen.workers.dev` and `vhdchy-stable.vanhanhdchungyen.workers.dev`.
+- Until changed, any deployed Worker would use `*.1291.workers.dev`.
+
+### BETA — PARTIAL
 
 - Owner confirmed `VHDCHY-BETA-CI` created and stored as GitHub `beta` environment secret `CLOUDFLARE_API_TOKEN`.
+- Account-level API access verified; token can read the single scoped account and call Workers APIs.
 - Validation workflow: `.github/workflows/setup-verify-cloudflare.yml`.
-- Diagnostic run `34433999726`: token authentication/account read succeeded, then zone lookup returned zero accessible zones.
-- Confirmation run `34434041556`: direct lookup of `vanhanhdchungyen.cc.cd` again returned zero accessible zones.
-- Conclusion: token secret exists and is accepted for account-level API access, but Zone resource/Zone Read scope for `vanhanhdchungyen.cc.cd` is missing or incorrectly scoped. Do not mark S2 PASS until fixed and rerun succeeds.
-- Account ID / Zone ID: not recorded yet because exact target zone was not accessible to token.
+- workers.dev setup workflow: `.github/workflows/setup-workers-dev.yml`.
+- Custom zone `vanhanhdchungyen.cc.cd` does not exist because Cloudflare currently blocks Add site for this account; this is separate from account-level Workers access.
 
 ### STABLE — OWNER_CONFIRMED_TOKEN / VALIDATION_WAITING
 
 - Owner confirmed `VHDCHY-STABLE-CI` created and stored as GitHub `stable` environment secret `CLOUDFLARE_API_TOKEN`.
-- Stable verification job is waiting on environment required-reviewer protection; validate after token scope correction.
-- Account ID / Zone ID: pending successful verification.
+- Stable verification job is gated by environment required-reviewer protection.
+- Custom-zone validation deferred until Cloudflare allows zone creation.
+
+### Custom zone — BLOCKED_EXTERNAL_REVIEW
+
+- Desired zone: `vanhanhdchungyen.cc.cd`.
+- Cloudflare Add site currently returns `You are not allowed to create new zones at this time`.
+- Review/support with Cloudflare remains open; not a blocker for workers.dev, Workers account APIs, D1 or independent Google setup.
+- `CF_ZONE_ID`: pending until the zone can actually be onboarded.
 
 ## Google Drive
 
@@ -47,7 +64,7 @@ Project root (existing, verified owner/private):
 ## Pending registry entries
 
 Add only after actual creation/readback or explicit Owner confirmation when provider admin readback is unavailable:
-- Cloudflare account ID / zone ID / Worker / D1 / public domain status after token validation PASS.
+- Cloudflare zone ID / Worker / D1 / public deployment status.
 - GCP project IDs/numbers and OAuth client identifiers (never client secret/refresh token).
 - Apps Script Script ID / Deployment ID / exec URL according to Runbook sensitivity rules.
 - Android signer SHA256 fingerprints only (never keystore/password/private key).
