@@ -54,7 +54,7 @@ Dependency/order và trạng thái thực tế:
 
 1. [x] `S0` checkpoint scope/authority — DONE.
 2. [~] `S1` GitHub Environments `beta`/`stable` + secrets/variables — ENVIRONMENTS_VERIFIED_BY_WORKFLOW; `stable` required-reviewer protection active; secrets/variables still PARTIAL until all provider values exist.
-3. [~] `S2` Cloudflare scoped tokens + account/zone IDs — OWNER created both tokens and stored secret names. BETA validation FIX_REQUIRED: token/account access works but target zone lookup returns 0, indicating missing/incorrect Zone resource or Zone Read scope. STABLE validation waits on required reviewer and should be rerun after scope fix.
+3. [~] `S2` Cloudflare scoped tokens + account/zone IDs — OWNER created both tokens and stored secret names. Current blocker is NOT token scope proof: target zone has not been created because Cloudflare UI blocks `Add site` with `You are not allowed to create new zones at this time`. Official review/support path required before zone onboarding. Worker/GCP are not prerequisites for zone creation.
 4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; independent of S2 and may proceed in parallel.
 5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; depends on S3; Bootstrap Kit ready.
 6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs stored in `ops/setup/RESOURCE_REGISTRY.md`; each env readback contains `00_SHARED..07_SYSTEM`.
@@ -65,8 +65,10 @@ Dependency/order và trạng thái thực tế:
 
 Cloudflare evidence:
 - Validation workflow: `.github/workflows/setup-verify-cloudflare.yml`.
-- Run `34433999726`: BETA token authentication/account read passed; exact zone lookup returned 0.
-- Run `34434041556`: direct zone lookup again returned 0; STABLE job waiting on environment approval.
+- Run `34433999726`: BETA token/account access succeeded far enough to query Cloudflare APIs; exact zone lookup returned 0.
+- Run `34434041556`: target zone still returned 0; STABLE job waits on required reviewer.
+- Owner screenshot 2026-09-10: Cloudflare `Add site` rejects `vanhanhdchungyen.cc.cd` with `You are not allowed to create new zones at this time` and directs non-Enterprise users to `abusereply@cloudflare.com`.
+- DNSHE documents `.cc.cd` as a public registration namespace; `cc.cd` is present in the Public Suffix List, so `vanhanhdchungyen.cc.cd` is intended as an independently controlled registered name rather than requiring ownership of the parent `cc.cd`.
 
 Empirical gates, not architecture questions:
 - `LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE` — PLAN READY, TEST NOT RUN.
@@ -74,4 +76,4 @@ Empirical gates, not architecture questions:
 
 ## NEXT
 
-Owner corrects Zone resource/scope on both Cloudflare tokens (`vanhanhdchungyen.cc.cd` with Zone Read + DNS Write + Workers Routes Write), then rerun verification. In parallel start S3 Google Cloud/OAuth and S6 Android signing. Do not repeat S5 or recreate environments.
+Owner uses Cloudflare's official review path to request zone-creation access for `vanhanhdchungyen.cc.cd`. While waiting, proceed with independent S3 Google Cloud/OAuth and S6 Android signing. Once Cloudflare permits Add site: onboard zone, delegate DNSHE to Cloudflare nameservers, scope BETA/STABLE tokens to the new Specific zone, then rerun validation. Do not repeat S5 or recreate environments.
