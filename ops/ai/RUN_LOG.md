@@ -56,4 +56,12 @@
 - LAN feasibility vẫn chưa PASS/FAIL cho tới khi chạy thiết bị thật; plan chỉ chuyển trạng thái chuẩn bị sang READY.
 - Kiểm tra DNS/HTTPS công khai: `beta.vanhanhdchungyen.cc.cd` và `vanhanhdchungyen.cc.cd` hiện không resolve; phù hợp checkpoint `NOT_DEPLOYED`. LAN hostnames cũng không resolve công khai, đúng thiết kế local-only.
 
+## 2026-09-10 09:27 +07 — SETUP-001 / S1A GITHUB ENVIRONMENTS
+
+- Owner xác nhận đã tạo GitHub Environments `beta` và `stable`.
+- Không yêu cầu tạo lại hai environment này.
+- GitHub connector hiện tại không expose Environment admin/secrets readback nên trạng thái ghi `CREATED_OWNER_CONFIRMED`, chưa ghi full PASS.
+- Environment secrets/variables vẫn pending, sẽ nhập sau khi Cloudflare/Google/Apps Script/Android signer tạo đủ provider values.
+- Bước tiếp theo: S2 Cloudflare + S3 Google Cloud/OAuth chạy song song; S6 Android signing độc lập. S4 Apps Script phụ thuộc S3.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
