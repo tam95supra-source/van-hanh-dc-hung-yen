@@ -156,3 +156,11 @@ Giữ nguyên Worker resource names theo Runbook: `vhdchy-beta` và `vhdchy-stab
 - Stable target: `vhdchy-stable.vanhanhdchungyen.workers.dev`
 
 Không đổi Worker names thành `beta`/`stable` chỉ để rút gọn URL. Không public LAN qua `workers.dev`; LAN vẫn dùng local DNS preferred names theo D-017 hoặc localhost fallback. Khi custom zone được Cloudflare cho phép, attach canonical custom domains theo D-017 và coi `workers.dev` là fallback/test route, không phải production canonical domain dài hạn.
+
+## D-026 — Không dùng `1291` làm workers.dev account subdomain
+
+Status: `ACTIVE`
+
+OWNER yêu cầu bỏ `1291` khỏi public Cloud URL. `1291.workers.dev` chỉ là subdomain cũ của Cloudflare account và không được dùng làm target URL của VHDCHY.
+
+Ưu tiên đổi account subdomain sang `vanhanhdchungyen`; nếu tên này không đăng ký được, thử một tên VHDCHY/Hưng Yên khác không chứa `1291`. Không DELETE subdomain cũ bằng API trước khi Dashboard xác nhận tên mới đã đăng ký thành công. Nếu Cloudflare không cho đăng ký bất kỳ tên phù hợp nào, chuyển sang phương án cloud provider dự phòng thay vì chấp nhận `1291` trong URL.
