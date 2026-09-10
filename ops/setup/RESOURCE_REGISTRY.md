@@ -2,6 +2,13 @@
 
 Non-secret resource registry for one-time setup. Secret/token/private-key values must never be stored here.
 
+## GitHub Environments
+
+Owner-confirmed created 2026-09-10:
+- `beta` — CREATED_OWNER_CONFIRMED; connector cannot independently read Environment admin state/secrets.
+- `stable` — CREATED_OWNER_CONFIRMED; connector cannot independently read Environment admin state/secrets.
+- Environment secrets/variables: PENDING until provider IDs/credentials are available.
+
 ## Google Drive
 
 Project root (existing, verified owner/private):
@@ -22,8 +29,7 @@ Project root (existing, verified owner/private):
 
 ## Pending registry entries
 
-Add only after actual creation/readback:
-- GitHub Environments `beta` / `stable` (no secret values)
+Add only after actual creation/readback or explicit Owner confirmation when provider admin readback is unavailable:
 - Cloudflare account ID / zone ID / Worker / D1 / public domain status
 - GCP project IDs/numbers and OAuth client identifiers (never client secret/refresh token)
 - Apps Script Script ID / Deployment ID / exec URL according to Runbook sensitivity rules
