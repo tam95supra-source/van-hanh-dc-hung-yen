@@ -1,0 +1,64 @@
+name: Setup workers.dev
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/setup-workers-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configure:
+    name: Configure workers.dev account subdomain
+    runs-on: ubuntu-latest
+    environment: beta
+    steps:
+      - name: Configure and verify workers.dev
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TARGET_SUBDOMAIN: vanhanhdchungyen
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CF_TOKEN:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is missing in beta environment"
+            exit 1
+          fi
+
+          accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
+          echo "${accounts_json}" | jq -e '.success == true' >/dev/null
+          account_count="$(echo "${accounts_json}" | jq '.result | length')"
+          if [ "${account_count}" -ne 1 ]; then
+            echo "::error::Expected exactly one scoped Cloudflare account, got ${account_count}"
+            exit 1
+          fi
+          account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+
+          current_json="$(curl -sS -H "Authorization: Bearer ${CF_TOKEN}" "https://api.cloudflare.com/client/v4/accounts/${account_id}/workers/subdomain")"
+          current_success="$(echo "${current_json}" | jq -r '.success // false')"
+          current_subdomain=""
+          if [ "${current_success}" = "true" ]; then
+            current_subdomain="$(echo "${current_json}" | jq -r '.result.subdomain // empty')"
+          fi
+
+          if [ "${current_subdomain}" != "${TARGET_SUBDOMAIN}" ]; then
+            update_json="$(curl -fsS -X PUT \
+              -H "Authorization: Bearer ${CF_TOKEN}" \
+              -H 'Content-Type: application/json' \
+              --data "$(jq -cn --arg s "${TARGET_SUBDOMAIN}" '{subdomain:$s}')" \
+              "https://api.cloudflare.com/client/v4/accounts/${account_id}/workers/subdomain")"
+            echo "${update_json}" | jq -e '.success == true and .result.subdomain == "'"${TARGET_SUBDOMAIN}"'"' >/dev/null
+          fi
+
+          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "https://api.cloudflare.com/client/v4/accounts/${account_id}/workers/subdomain")"
+          echo "${verify_json}" | jq -e '.success == true and .result.subdomain == "'"${TARGET_SUBDOMAIN}"'"' >/dev/null
+
+          echo "WORKERS_DEV_SETUP=PASS"
+          echo "CF_ACCOUNT_ID=${account_id}"
+          echo "CF_WORKERS_DEV_SUBDOMAIN=$(echo "${verify_json}" | jq -r '.result.subdomain')"
+          echo "BETA_EXPECTED_URL=https://vhdchy-beta.${TARGET_SUBDOMAIN}.workers.dev"
+          echo "STABLE_EXPECTED_URL=https://vhdchy-stable.${TARGET_SUBDOMAIN}.workers.dev"
