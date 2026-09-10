@@ -50,4 +50,10 @@
 - Tạo `ops/setup/RESOURCE_REGISTRY.md`; chỉ lưu non-secret IDs/status.
 - SETUP-001 chuyển IN_PROGRESS; S5 DONE; S1/S2/S3/S4/S6 còn pending theo dependency.
 
+## 2026-09-10 09:11 +07 — SETUP-001 / LAN PLAN READY
+
+- Tạo `ops/setup/LAN_PROBE_PLAN.md` từ Master Spec/Runbook: HY1/HY2 matrix, HTTP/WebSocket/discovery/localhost/startup/sleep-reconnect, SLA >=90% <500ms và 100% <2s, result codes và evidence checklist.
+- LAN feasibility vẫn chưa PASS/FAIL cho tới khi chạy thiết bị thật; plan chỉ chuyển trạng thái chuẩn bị sang READY.
+- Kiểm tra DNS/HTTPS công khai: `beta.vanhanhdchungyen.cc.cd` và `vanhanhdchungyen.cc.cd` hiện không resolve; phù hợp checkpoint `NOT_DEPLOYED`. LAN hostnames cũng không resolve công khai, đúng thiết kế local-only.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
