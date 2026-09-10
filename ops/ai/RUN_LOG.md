@@ -69,9 +69,15 @@
 - Owner xác nhận đã tạo hai Cloudflare CI tokens và lưu vào GitHub environments.
 - Tạo workflow an toàn `.github/workflows/setup-verify-cloudflare.yml`; chỉ đọc secret trong runner và không in token.
 - Workflow thực tế xác minh `beta` environment tồn tại và secret `CLOUDFLARE_API_TOKEN` có giá trị; `stable` environment tồn tại và required-reviewer protection đang chặn job đúng thiết kế.
-- Lần đầu dùng user-token verify endpoint trả 401; đối chiếu Cloudflare docs 2026 cho thấy account-owned tokens dùng endpoint `/accounts/{account_id}/tokens/verify`, nên workflow được sửa để hỗ trợ cả account/user token.
-- Run `34433999726`: BETA token qua bước account API và token verification, nhưng lookup zone `vanhanhdchungyen.cc.cd` trả 0.
-- Run `34434041556`: query trực tiếp target zone vẫn trả 0. Kết luận token đang thiếu/đặt sai Zone resource hoặc Zone Read scope; chưa đủ điều kiện S2 PASS.
-- Không ghi token hoặc private value vào repo/log. Cần Owner sửa Zone resource/scope trên cả BETA/STABLE token rồi rerun.
+- Run `34433999726` và `34434041556`: target zone `vanhanhdchungyen.cc.cd` trả 0 accessible zones.
+- Kết luận ban đầu nghi token thiếu Zone resource/scope.
+
+## 2026-09-10 10:37 +07 — SETUP-001 / CLOUDFLARE PREREQUISITE CORRECTION
+
+- Owner xác nhận `vanhanhdchungyen.cc.cd` chưa được onboard vào Cloudflare.
+- Sửa chẩn đoán: zone lookup=0 phù hợp với việc zone chưa tồn tại trong Cloudflare account; chưa thể kết luận token scope sai.
+- Cloudflare official docs 2026: trước Worker Custom Domain phải có active Cloudflare zone; Worker chỉ là prerequisite khi attach Custom Domain, không phải prerequisite để onboard domain/zone.
+- Google GCP hoàn toàn độc lập với Cloudflare zone onboarding.
+- Bước đúng tiếp theo: Domains -> Onboard a domain -> thêm `vanhanhdchungyen.cc.cd`, hoàn tất nameserver delegation; sau đó mới scope token vào Specific zone và rerun verification.
 
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
