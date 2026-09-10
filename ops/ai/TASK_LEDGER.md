@@ -54,7 +54,7 @@ Dependency/order và trạng thái thực tế:
 
 1. [x] `S0` checkpoint scope/authority — DONE.
 2. [~] `S1` GitHub Environments `beta`/`stable` + secrets/variables — ENVIRONMENTS_VERIFIED_BY_WORKFLOW; `stable` required-reviewer protection active; secrets/variables still PARTIAL until all provider values exist.
-3. [~] `S2` Cloudflare — PARTIAL. BETA/STABLE tokens owner-created; account-level BETA access verified. `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76`. Account already has workers.dev subdomain `1291.workers.dev`. OWNER approved changing to `vanhanhdchungyen.workers.dev`; API update returned Cloudflare 10036 because the account already has an associated subdomain, so dashboard `Workers & Pages -> Change` is the safe next step. Custom zone `vanhanhdchungyen.cc.cd` remains separately blocked by Cloudflare Add-site review.
+3. [~] `S2` Cloudflare — PROVIDER_BLOCKED. BETA/STABLE tokens owner-created and BETA account-level API access previously verified; `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76`. Owner supplied Cloudflare suspension notice: account is suspended for Terms of Service review. Notice explicitly states existing services continue but adding new domains is disabled while review is pending. This directly explains Add-site failure. workers.dev rename failures may also be related, but that is not explicitly confirmed by the notice. Stop repeated Cloudflare mutations until review clears.
 4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; independent of S2 and may proceed in parallel.
 5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; depends on S3; Bootstrap Kit ready.
 6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs stored in `ops/setup/RESOURCE_REGISTRY.md`; each env readback contains `00_SHARED..07_SYSTEM`.
@@ -64,10 +64,10 @@ Dependency/order và trạng thái thực tế:
 10. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams parallelize after contracts.
 
 Cloudflare evidence:
-- `.github/workflows/setup-verify-cloudflare.yml` verified BETA token/account API access.
-- `.github/workflows/setup-workers-dev.yml` run `34435410482` read `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76` and current `CURRENT_WORKERS_DEV_SUBDOMAIN=1291`; PUT target `vanhanhdchungyen` returned HTTP 409 / Cloudflare `10036: Account already has an associated subdomain`.
-- Cloudflare docs state account workers.dev subdomain can be changed in Dashboard: Workers & Pages -> Change next to Your subdomain.
-- OWNER approved interim workers.dev route while custom zone review is pending. Fixed Worker names remain `vhdchy-beta` / `vhdchy-stable`; after desired account subdomain change, URLs will be `vhdchy-beta.vanhanhdchungyen.workers.dev` and `vhdchy-stable.vanhanhdchungyen.workers.dev`.
+- `.github/workflows/setup-verify-cloudflare.yml` previously verified BETA token/account API access.
+- `.github/workflows/setup-workers-dev.yml` run `34435410482` read `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76` and current `CURRENT_WORKERS_DEV_SUBDOMAIN=1291`; rename attempts did not complete.
+- Owner-provided Cloudflare email on 2026-09-10: account suspended for possible Terms of Service violation/review; current services not impacted; new domains cannot be added while under review; contact `abusereply@cloudflare.com`.
+- OWNER rejects public VHDCHY URLs containing account subdomain `1291`.
 - LAN is not exposed on workers.dev.
 
 Empirical gates, not architecture questions:
@@ -76,4 +76,4 @@ Empirical gates, not architecture questions:
 
 ## NEXT
 
-Owner changes the existing Workers account subdomain from `1291` to `vanhanhdchungyen` in Cloudflare Dashboard if the target is available. AI then readbacks workers.dev and can continue account-level Worker/D1 setup without waiting for custom-zone review. In parallel, start S3 Google Cloud/OAuth and S6 Android signing. Custom zone review remains open but no longer blocks Beta build/test through workers.dev.
+Treat Cloudflare as blocked pending Trust & Safety review. Owner should reply/contact `abusereply@cloudflare.com` and request reinstatement/review. Do not keep retrying domain/subdomain mutations during suspension. Continue S3 Google Cloud/OAuth and S6 Android signing in parallel. If Owner chooses not to wait for Cloudflare, evaluate/setup a fallback cloud provider rather than accepting `1291.workers.dev`.
