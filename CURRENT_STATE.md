@@ -4,8 +4,8 @@
 project: "VẬN HÀNH DC HƯNG YÊN"
 repository: "tam95supra-source/van-hanh-dc-hung-yen"
 branch: "main"
-state_revision: 6
-last_checkpoint_at: "2026-09-10T09:08:00+07:00"
+state_revision: 7
+last_checkpoint_at: "2026-09-10T09:11:00+07:00"
 phase: "SETUP_READY"
 code_status: "APPROVED_FOR_SETUP_AND_IMPLEMENTATION"
 
@@ -15,14 +15,15 @@ current_task:
   status: "IN_PROGRESS"
 
 last_completed_step:
-  id: "SETUP-001-S5"
-  summary: "Google Drive runtime roots BETA/STABLE đã được tạo mới và readback PASS dưới project root hiện hữu; mỗi env có 00_SHARED..07_SYSTEM, tách biệt hoàn toàn."
+  id: "SETUP-001-LAN-PLAN"
+  summary: "LAN Probe HY1/HY2 plan đã được khóa thành file repo với test matrix, SLA, result codes và evidence checklist. Test thực tế chưa chạy."
 
 next_step:
   summary: "S1 GitHub Environments beta/stable chưa thể xác minh/tạo bằng GitHub connector hiện tại vì connector không expose Environments/Secrets API. Owner cần thao tác Settings -> Environments. Song song tiếp tục S2 Cloudflare, S3 Google Cloud/OAuth và S6 Android signing khi Owner thao tác/cấp quyền; S4 Apps Script phụ thuộc S3."
 
 do_not_repeat:
   - "Không tạo lại Drive runtime roots 10_RUNTIME_BETA / 20_RUNTIME_STABLE hoặc các child folders đã PASS."
+  - "Không viết lại LAN Probe plan từ đầu; tiếp tục bằng build Probe và test HY1/HY2 khi đến bước thực thi."
   - "Không khôi phục code/config/workflow cũ đã bị loại khỏi main như authority của dự án mới."
   - "Được READ/REUSE có chọn lọc pick-pack-1291 làm reference; CẤM write/deploy/runtime fallback sang dự án cũ nếu không có chỉ thị mới."
   - "Không migrate employee/resource/history từ Pick Pack 1291 cũ vì dữ liệu cũ là test."
@@ -37,6 +38,7 @@ do_not_repeat:
 read_next:
   - "ops/ai/TASK_LEDGER.md"
   - "ops/setup/RESOURCE_REGISTRY.md"
+  - "ops/setup/LAN_PROBE_PLAN.md"
   - "ops/setup/GOOGLE_SHEETS_MODEL_PICKPACK1291.md"
   - "ops/ai/RUN_LOG.md"
 
@@ -49,6 +51,8 @@ known_blockers:
 
 notes:
   - "Drive project root owner/private readback PASS. BETA root ID=1EpUI49xbFUtgzR3mh3M0EQu7qYYsswB5; STABLE root ID=1c6RNTOHOzaX6GrQFOEd64h9rndPoeiFI."
+  - "Public beta/stable hostnames did not resolve during 2026-09-10 setup verification; consistent with NOT_DEPLOYED. LAN hostnames also intentionally unresolved publicly."
+  - "LAN Probe plan file: ops/setup/LAN_PROBE_PLAN.md; plan READY, empirical gate OPEN."
   - "GitHub checkpoint là nguồn trạng thái công việc chính thức; trí nhớ chat chỉ là tạm thời."
   - "Platform scope = toàn DC; cluster = team/operational boundary; feature/permission linh hoạt."
   - "Cluster đầu tiên = Pick Pack 1291; business source/logic cũ là strong read-only reference."
