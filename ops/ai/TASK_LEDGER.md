@@ -53,7 +53,7 @@ Mục tiêu: cấu hình một lần đủ quyền và tách môi trường đ�
 Dependency/order và trạng thái thực tế:
 
 1. [x] `S0` checkpoint scope/authority — DONE.
-2. [ ] `S1` GitHub Environments `beta`/`stable` + secrets/variables — WAITING_OWNER/UNVERIFIED. Connector hiện tại không expose Environments/Secrets admin API; không được tự giả định PASS.
+2. [~] `S1` GitHub Environments `beta`/`stable` + secrets/variables — ENVIRONMENTS_CREATED_OWNER_CONFIRMED 2026-09-10; secrets/variables PENDING. Connector không expose Environment admin/secrets readback nên không ghi fully PASS cho tới khi cấu hình env values hoàn tất.
 3. [ ] `S2` Cloudflare scoped tokens + account/zone IDs — PENDING; có thể song song S3/S6.
 4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; có thể song song S2/S6.
 5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; phụ thuộc S3; Bootstrap Kit đã sẵn.
@@ -69,4 +69,4 @@ Empirical gates, không phải câu hỏi kiến trúc:
 
 ## NEXT
 
-Owner hoàn tất/confirm S1 GitHub Environments trước; đồng thời có thể thực hiện S2 Cloudflare, S3 Google Cloud/OAuth và S6 Android signing. AI không làm lại S5 hoặc viết lại LAN Probe plan. Sau mỗi nhóm Owner cung cấp ID/non-secret status hoặc khi connector có thể readback, checkpoint ngay.
+Bắt đầu S2 Cloudflare và S3 Google Cloud/OAuth song song; S6 Android signing cũng độc lập nhưng cần giữ private key/backup Owner-controlled. Sau khi provider tạo xong IDs/credentials, nhập các secrets/variables vào GitHub `beta`/`stable` rồi đóng S1. AI không làm lại S5 hoặc viết lại LAN Probe plan.
