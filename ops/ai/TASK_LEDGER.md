@@ -46,21 +46,21 @@ Status: `DONE`
 
 ## SETUP-001 — One-time service/permission setup
 
-Status: `READY`
+Status: `IN_PROGRESS`
 
 Mục tiêu: cấu hình một lần đủ quyền và tách môi trường để từ đó AI/CI build liên tục mà không yêu cầu Owner cấp lại cùng loại quyền.
 
-Dependency/order:
+Dependency/order và trạng thái thực tế:
 
-1. `S0` checkpoint scope/authority — DONE.
-2. `S1` GitHub Environments `beta`/`stable` + secrets/variables — OWNER/AI setup.
-3. `S2` Cloudflare scoped tokens + account/zone IDs — có thể song song S3/S5/S6.
-4. `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — song song S2/S5/S6.
-5. `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — phụ thuộc S3; Sheets model đã DONE.
-6. `S5` Drive runtime roots BETA/STABLE — song song S2/S3/S6.
-7. `S6` Android Beta/Stable signing + encrypted backup — song song S2/S3/S5.
-8. `S7` Lock P1 contracts: IDs/event/permission/API/schema/release.
-9. `S8+` Cloud/Google/App/Web/LAN workstreams chạy song song theo contract.
+1. [x] `S0` checkpoint scope/authority — DONE.
+2. [ ] `S1` GitHub Environments `beta`/`stable` + secrets/variables — WAITING_OWNER/UNVERIFIED. Connector hiện tại không expose Environments/Secrets admin API; không được tự giả định PASS.
+3. [ ] `S2` Cloudflare scoped tokens + account/zone IDs — PENDING; có thể song song S3/S6.
+4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; có thể song song S2/S6.
+5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; phụ thuộc S3; Bootstrap Kit đã sẵn.
+6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs lưu tại `ops/setup/RESOURCE_REGISTRY.md`; mỗi env đã readback đủ `00_SHARED..07_SYSTEM`.
+7. [ ] `S6` Android Beta/Stable signing + encrypted backup — PENDING/OWNER-CONTROLLED.
+8. [ ] `S7` Lock P1 contracts: IDs/event/permission/API/schema/release — chỉ bắt đầu sau khi SETUP-001 đủ điều kiện.
+9. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams chạy song song theo contract.
 
 Empirical gates, không phải câu hỏi kiến trúc:
 - `LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE`
@@ -68,4 +68,4 @@ Empirical gates, không phải câu hỏi kiến trúc:
 
 ## NEXT
 
-Mở phiên chat mới theo `ops/ai/HANDOFF_NEXT_CHAT.md`, đọc checkpoint rồi thực hiện `SETUP-001` từ bước chưa hoàn thành đầu tiên. Không mở lại vòng hỏi kiến trúc trừ khi test thực tế hoặc một cluster nghiệp vụ mới làm lộ vấn đề chưa thể biết trước.
+Owner hoàn tất/confirm S1 GitHub Environments trước; đồng thời có thể thực hiện S2 Cloudflare, S3 Google Cloud/OAuth và S6 Android signing. AI không làm lại S5. Sau mỗi nhóm Owner cung cấp ID/non-secret status hoặc khi connector có thể readback, checkpoint ngay.
