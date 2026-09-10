@@ -53,20 +53,25 @@ Mục tiêu: cấu hình một lần đủ quyền và tách môi trường đ�
 Dependency/order và trạng thái thực tế:
 
 1. [x] `S0` checkpoint scope/authority — DONE.
-2. [~] `S1` GitHub Environments `beta`/`stable` + secrets/variables — ENVIRONMENTS_CREATED_OWNER_CONFIRMED 2026-09-10; secrets/variables PENDING. Connector không expose Environment admin/secrets readback nên không ghi fully PASS cho tới khi cấu hình env values hoàn tất.
-3. [ ] `S2` Cloudflare scoped tokens + account/zone IDs — PENDING; có thể song song S3/S6.
-4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; có thể song song S2/S6.
-5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; phụ thuộc S3; Bootstrap Kit đã sẵn.
-6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs lưu tại `ops/setup/RESOURCE_REGISTRY.md`; mỗi env đã readback đủ `00_SHARED..07_SYSTEM`.
-7. [ ] `S6` Android Beta/Stable signing + encrypted backup — PENDING/OWNER-CONTROLLED.
-8. [x] `LAN-PLAN` HY1/HY2 Probe plan — READY 2026-09-10 tại `ops/setup/LAN_PROBE_PLAN.md`; physical test vẫn OPEN.
-9. [ ] `S7` Lock P1 contracts: IDs/event/permission/API/schema/release — chỉ bắt đầu sau khi SETUP-001 đủ điều kiện.
-10. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams chạy song song theo contract.
+2. [~] `S1` GitHub Environments `beta`/`stable` + secrets/variables — ENVIRONMENTS_VERIFIED_BY_WORKFLOW; `stable` required-reviewer protection active; secrets/variables still PARTIAL until all provider values exist.
+3. [~] `S2` Cloudflare scoped tokens + account/zone IDs — OWNER created both tokens and stored secret names. BETA validation FIX_REQUIRED: token/account access works but target zone lookup returns 0, indicating missing/incorrect Zone resource or Zone Read scope. STABLE validation waits on required reviewer and should be rerun after scope fix.
+4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; independent of S2 and may proceed in parallel.
+5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; depends on S3; Bootstrap Kit ready.
+6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs stored in `ops/setup/RESOURCE_REGISTRY.md`; each env readback contains `00_SHARED..07_SYSTEM`.
+7. [ ] `S6` Android Beta/Stable signing + encrypted backup — PENDING/OWNER-CONTROLLED; independent of S2/S3.
+8. [x] `LAN-PLAN` HY1/HY2 Probe plan — READY 2026-09-10 at `ops/setup/LAN_PROBE_PLAN.md`; physical test still OPEN.
+9. [ ] `S7` Lock P1 contracts: IDs/event/permission/API/schema/release — only after SETUP-001 is sufficiently ready.
+10. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams parallelize after contracts.
 
-Empirical gates, không phải câu hỏi kiến trúc:
+Cloudflare evidence:
+- Validation workflow: `.github/workflows/setup-verify-cloudflare.yml`.
+- Run `34433999726`: BETA token authentication/account read passed; exact zone lookup returned 0.
+- Run `34434041556`: direct zone lookup again returned 0; STABLE job waiting on environment approval.
+
+Empirical gates, not architecture questions:
 - `LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE` — PLAN READY, TEST NOT RUN.
 - `FREE_PLAN_CAPACITY_REQUIRES_BETA_STRESS_SOAK_MEASUREMENT` — NOT RUN.
 
 ## NEXT
 
-Bắt đầu S2 Cloudflare và S3 Google Cloud/OAuth song song; S6 Android signing cũng độc lập nhưng cần giữ private key/backup Owner-controlled. Sau khi provider tạo xong IDs/credentials, nhập các secrets/variables vào GitHub `beta`/`stable` rồi đóng S1. AI không làm lại S5 hoặc viết lại LAN Probe plan.
+Owner corrects Zone resource/scope on both Cloudflare tokens (`vanhanhdchungyen.cc.cd` with Zone Read + DNS Write + Workers Routes Write), then rerun verification. In parallel start S3 Google Cloud/OAuth and S6 Android signing. Do not repeat S5 or recreate environments.
