@@ -4,8 +4,8 @@
 project: "VẬN HÀNH DC HƯNG YÊN"
 repository: "tam95supra-source/van-hanh-dc-hung-yen"
 branch: "main"
-state_revision: 7
-last_checkpoint_at: "2026-09-10T09:11:00+07:00"
+state_revision: 8
+last_checkpoint_at: "2026-09-10T09:27:00+07:00"
 phase: "SETUP_READY"
 code_status: "APPROVED_FOR_SETUP_AND_IMPLEMENTATION"
 
@@ -15,13 +15,14 @@ current_task:
   status: "IN_PROGRESS"
 
 last_completed_step:
-  id: "SETUP-001-LAN-PLAN"
-  summary: "LAN Probe HY1/HY2 plan đã được khóa thành file repo với test matrix, SLA, result codes và evidence checklist. Test thực tế chưa chạy."
+  id: "SETUP-001-S1A-GITHUB-ENVIRONMENTS"
+  summary: "Owner xác nhận đã tạo GitHub Environments beta và stable. Connector hiện tại không expose Environment admin/secrets readback nên ghi CREATED_OWNER_CONFIRMED; secrets/variables vẫn pending."
 
 next_step:
-  summary: "S1 GitHub Environments beta/stable chưa thể xác minh/tạo bằng GitHub connector hiện tại vì connector không expose Environments/Secrets API. Owner cần thao tác Settings -> Environments. Song song tiếp tục S2 Cloudflare, S3 Google Cloud/OAuth và S6 Android signing khi Owner thao tác/cấp quyền; S4 Apps Script phụ thuộc S3."
+  summary: "Tiếp tục S2 Cloudflare và S3 Google Cloud/OAuth song song; S6 Android signing độc lập nhưng Owner-controlled. Khi provider IDs/credentials sẵn, nhập GitHub environment secrets/variables để đóng S1. S4 Apps Script phụ thuộc S3."
 
 do_not_repeat:
+  - "Không yêu cầu tạo lại GitHub Environments beta/stable; Owner đã xác nhận tạo xong."
   - "Không tạo lại Drive runtime roots 10_RUNTIME_BETA / 20_RUNTIME_STABLE hoặc các child folders đã PASS."
   - "Không viết lại LAN Probe plan từ đầu; tiếp tục bằng build Probe và test HY1/HY2 khi đến bước thực thi."
   - "Không khôi phục code/config/workflow cũ đã bị loại khỏi main như authority của dự án mới."
@@ -45,11 +46,15 @@ read_next:
 live_beta: "NOT_DEPLOYED"
 live_stable: "NOT_DEPLOYED"
 known_blockers:
-  - "SETUP_S1_GITHUB_ENVIRONMENTS_REQUIRES_OWNER_UI_OR_TOOL_WITH_ENVIRONMENT_ADMIN_API"
+  - "SETUP_S1_ENV_SECRETS_VARIABLES_PENDING_PROVIDER_VALUES"
+  - "SETUP_S2_CLOUDFLARE_OWNER_UI_REQUIRED_FOR_TOKEN_CREATION"
+  - "SETUP_S3_GOOGLE_GCP_OAUTH_OWNER_UI_REQUIRED"
+  - "SETUP_S6_ANDROID_SIGNING_OWNER_CONTROLLED"
   - "LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE"
   - "FREE_PLAN_CAPACITY_REQUIRES_BETA_STRESS_SOAK_MEASUREMENT"
 
 notes:
+  - "GitHub Environments beta/stable: CREATED_OWNER_CONFIRMED 2026-09-10; no independent connector admin readback available."
   - "Drive project root owner/private readback PASS. BETA root ID=1EpUI49xbFUtgzR3mh3M0EQu7qYYsswB5; STABLE root ID=1c6RNTOHOzaX6GrQFOEd64h9rndPoeiFI."
   - "Public beta/stable hostnames did not resolve during 2026-09-10 setup verification; consistent with NOT_DEPLOYED. LAN hostnames also intentionally unresolved publicly."
   - "LAN Probe plan file: ops/setup/LAN_PROBE_PLAN.md; plan READY, empirical gate OPEN."
