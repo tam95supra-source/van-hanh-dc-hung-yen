@@ -98,4 +98,11 @@
 - Không DELETE subdomain `1291` bằng API vì có rủi ro mất tên hiện tại và target chưa chắc khả dụng. Cloudflare docs cho phép đổi an toàn trong Dashboard: Workers & Pages -> Change next to Your subdomain.
 - Sau khi Owner đổi dashboard thành `vanhanhdchungyen` (nếu available), AI sẽ readback rồi tiếp tục account-level Worker/D1 setup; custom-zone review tiếp tục độc lập.
 
+## 2026-09-10 11:17 +07 — SETUP-001 / WORKERS.DEV DASHBOARD RENAME DIAGNOSIS
+
+- Owner thử rename Dashboard từ `1291.workers.dev` sang `hungyen.workers.dev`; Cloudflare trả generic `could not be registered`.
+- Screenshot cho thấy target thực tế là `hungyen`, không phải target đã chốt `vanhanhdchungyen`.
+- Cloudflare docs xác nhận account workers.dev subdomain có thể cấu hình/đổi trong Dashboard, nhưng không đảm bảo một tên cụ thể khả dụng.
+- Chưa có bằng chứng Workers.dev toàn account bị hỏng; bước an toàn là thử đúng `vanhanhdchungyen`. Nếu vẫn thất bại, giữ `1291.workers.dev` và tiếp tục bằng Worker URLs dưới subdomain này; không DELETE/ép recreate.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
