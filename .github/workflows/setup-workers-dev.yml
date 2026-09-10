@@ -37,20 +37,34 @@ jobs:
             exit 1
           fi
           account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+          echo "CF_ACCOUNT_ID=${account_id}"
 
           current_json="$(curl -sS -H "Authorization: Bearer ${CF_TOKEN}" "https://api.cloudflare.com/client/v4/accounts/${account_id}/workers/subdomain")"
           current_success="$(echo "${current_json}" | jq -r '.success // false')"
           current_subdomain=""
           if [ "${current_success}" = "true" ]; then
             current_subdomain="$(echo "${current_json}" | jq -r '.result.subdomain // empty')"
+            echo "CURRENT_WORKERS_DEV_SUBDOMAIN=${current_subdomain}"
+          else
+            echo "CURRENT_WORKERS_DEV_SUBDOMAIN=NONE"
           fi
 
           if [ "${current_subdomain}" != "${TARGET_SUBDOMAIN}" ]; then
-            update_json="$(curl -fsS -X PUT \
+            tmp_body="$(mktemp)"
+            http_code="$(curl -sS -o "${tmp_body}" -w '%{http_code}' -X PUT \
               -H "Authorization: Bearer ${CF_TOKEN}" \
               -H 'Content-Type: application/json' \
               --data "$(jq -cn --arg s "${TARGET_SUBDOMAIN}" '{subdomain:$s}')" \
               "https://api.cloudflare.com/client/v4/accounts/${account_id}/workers/subdomain")"
+            update_json="$(cat "${tmp_body}")"
+            rm -f "${tmp_body}"
+
+            if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+              error_code="$(echo "${update_json}" | jq -r '.errors[0].code // "UNKNOWN"')"
+              error_message="$(echo "${update_json}" | jq -r '.errors[0].message // "Unknown Cloudflare error"')"
+              echo "::error::workers.dev update failed HTTP ${http_code}, Cloudflare ${error_code}: ${error_message}"
+              exit 1
+            fi
             echo "${update_json}" | jq -e '.success == true and .result.subdomain == "'"${TARGET_SUBDOMAIN}"'"' >/dev/null
           fi
 
@@ -58,7 +72,6 @@ jobs:
           echo "${verify_json}" | jq -e '.success == true and .result.subdomain == "'"${TARGET_SUBDOMAIN}"'"' >/dev/null
 
           echo "WORKERS_DEV_SETUP=PASS"
-          echo "CF_ACCOUNT_ID=${account_id}"
           echo "CF_WORKERS_DEV_SUBDOMAIN=$(echo "${verify_json}" | jq -r '.result.subdomain')"
           echo "BETA_EXPECTED_URL=https://vhdchy-beta.${TARGET_SUBDOMAIN}.workers.dev"
           echo "STABLE_EXPECTED_URL=https://vhdchy-stable.${TARGET_SUBDOMAIN}.workers.dev"
