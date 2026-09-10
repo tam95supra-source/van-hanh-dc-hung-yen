@@ -64,4 +64,14 @@
 - Environment secrets/variables vẫn pending, sẽ nhập sau khi Cloudflare/Google/Apps Script/Android signer tạo đủ provider values.
 - Bước tiếp theo: S2 Cloudflare + S3 Google Cloud/OAuth chạy song song; S6 Android signing độc lập. S4 Apps Script phụ thuộc S3.
 
+## 2026-09-10 10:34 +07 — SETUP-001 / S2 CLOUDFLARE VALIDATION
+
+- Owner xác nhận đã tạo hai Cloudflare CI tokens và lưu vào GitHub environments.
+- Tạo workflow an toàn `.github/workflows/setup-verify-cloudflare.yml`; chỉ đọc secret trong runner và không in token.
+- Workflow thực tế xác minh `beta` environment tồn tại và secret `CLOUDFLARE_API_TOKEN` có giá trị; `stable` environment tồn tại và required-reviewer protection đang chặn job đúng thiết kế.
+- Lần đầu dùng user-token verify endpoint trả 401; đối chiếu Cloudflare docs 2026 cho thấy account-owned tokens dùng endpoint `/accounts/{account_id}/tokens/verify`, nên workflow được sửa để hỗ trợ cả account/user token.
+- Run `34433999726`: BETA token qua bước account API và token verification, nhưng lookup zone `vanhanhdchungyen.cc.cd` trả 0.
+- Run `34434041556`: query trực tiếp target zone vẫn trả 0. Kết luận token đang thiếu/đặt sai Zone resource hoặc Zone Read scope; chưa đủ điều kiện S2 PASS.
+- Không ghi token hoặc private value vào repo/log. Cần Owner sửa Zone resource/scope trên cả BETA/STABLE token rồi rerun.
+
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
