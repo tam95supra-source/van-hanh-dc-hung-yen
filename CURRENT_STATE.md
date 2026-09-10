@@ -4,8 +4,8 @@
 project: "VẬN HÀNH DC HƯNG YÊN"
 repository: "tam95supra-source/van-hanh-dc-hung-yen"
 branch: "main"
-state_revision: 14
-last_checkpoint_at: "2026-09-10T11:17:00+07:00"
+state_revision: 15
+last_checkpoint_at: "2026-09-10T11:20:00+07:00"
 phase: "SETUP_READY"
 code_status: "APPROVED_FOR_SETUP_AND_IMPLEMENTATION"
 
@@ -15,15 +15,16 @@ current_task:
   status: "IN_PROGRESS"
 
 last_completed_step:
-  id: "SETUP-001-S2-WORKERSDEV-DASHBOARD-RENAME-DIAGNOSIS"
-  summary: "Owner attempted Dashboard rename from `1291.workers.dev` to `hungyen.workers.dev`; Cloudflare returned generic `could not be registered`. This does not prove an account failure. Cloudflare documents account workers.dev subdomain as configurable, but the requested account subdomain must be registrable/available. The agreed target remains `vanhanhdchungyen`, not `hungyen`."
+  id: "SETUP-001-S2-WORKERSDEV-NAMING-DECISION"
+  summary: "OWNER explicitly rejects `1291` in the public workers.dev URL. `1291.workers.dev` is not an acceptable VHDCHY target. Decision D-026 recorded: rename to a VHDCHY/Hung Yen account subdomain without `1291`, preferring `vanhanhdchungyen`; if Cloudflare cannot register any acceptable name, use a fallback cloud provider rather than keep 1291."
 
 next_step:
-  summary: "Owner retries Dashboard Change using exact target `vanhanhdchungyen`. If that also returns `could not be registered`, capture screenshot and keep `1291.workers.dev` as interim route rather than destructive delete/recreate. AI then continues Worker/D1 setup using the surviving account subdomain. S3 Google Cloud/OAuth and S6 Android signing remain independent."
+  summary: "Owner uses Workers & Pages -> Account details -> Subdomain edit and tries exact target `vanhanhdchungyen`. If unavailable, try another VHDCHY/Hung Yen name without `1291`; do not delete the old account subdomain before a new name is successfully registered. If Cloudflare rejects all acceptable names, stop spending time on workers.dev and proceed with fallback cloud provider evaluation/setup."
 
 do_not_repeat:
-  - "Không DELETE workers.dev subdomain `1291` bằng API để ép đổi tên; giữ route hiện tại nếu rename target không đăng ký được."
-  - "Không coi lỗi đăng ký `hungyen.workers.dev` là bằng chứng toàn bộ Workers.dev không khả dụng; thử đúng target đã chốt `vanhanhdchungyen` trước."
+  - "Không chấp nhận `1291.workers.dev` hoặc URL public chứa account-subdomain `1291` làm target của VHDCHY."
+  - "Không DELETE workers.dev subdomain `1291` bằng API trước khi tên thay thế được Dashboard đăng ký thành công."
+  - "Không coi lỗi đăng ký `hungyen.workers.dev` là bằng chứng toàn bộ Workers.dev không khả dụng; thử đúng `vanhanhdchungyen` hoặc tên VHDCHY/Hưng Yên khác không chứa 1291."
   - "Không đổi Worker resource names vhdchy-beta/vhdchy-stable thành beta/stable chỉ để rút gọn workers.dev URL."
   - "Không public LAN qua workers.dev; LAN giữ local DNS preferred names hoặc localhost fallback."
   - "Không coi workers.dev là thay thế vĩnh viễn canonical custom domains; đây là interim/fallback route trong lúc Cloudflare custom zone bị chặn."
@@ -44,17 +45,17 @@ do_not_repeat:
   - "Không ghi secret/token/password/signer/private data vào repo."
 
 read_next:
+  - "ops/ai/DECISIONS.md"
   - "ops/ai/TASK_LEDGER.md"
   - "ops/setup/RESOURCE_REGISTRY.md"
   - ".github/workflows/setup-workers-dev.yml"
-  - ".github/workflows/setup-verify-cloudflare.yml"
   - "ops/ai/RUN_LOG.md"
 
 live_beta: "NOT_DEPLOYED"
 live_stable: "NOT_DEPLOYED"
 known_blockers:
   - "SETUP_S1_ENV_SECRETS_VARIABLES_PENDING_PROVIDER_VALUES"
-  - "SETUP_S2_WORKERSDEV_TARGET_AVAILABILITY_UNCONFIRMED"
+  - "SETUP_S2_WORKERSDEV_ACCEPTABLE_SUBDOMAIN_NOT_REGISTERED"
   - "SETUP_S2_CLOUDFLARE_CUSTOM_ZONE_CREATION_RESTRICTED_REVIEW_REQUIRED"
   - "SETUP_S3_GOOGLE_GCP_OAUTH_OWNER_UI_REQUIRED"
   - "SETUP_S6_ANDROID_SIGNING_OWNER_CONTROLLED"
@@ -63,11 +64,9 @@ known_blockers:
 
 notes:
   - "Cloudflare account ID verified: d79b87776e86d8edc8f4a0a94302ca76."
-  - "Current workers.dev account subdomain remains 1291.workers.dev."
-  - "Owner screenshot 2026-09-10 shows rename attempt specifically targeted hungyen.workers.dev and Cloudflare returned generic registration failure."
-  - "Cloudflare docs support Dashboard Workers & Pages -> Change next to Your subdomain; exact availability/registration policy for a requested name is provider-controlled."
-  - "After desired account subdomain becomes vanhanhdchungyen, fixed Worker names imply interim URLs vhdchy-beta.vanhanhdchungyen.workers.dev and vhdchy-stable.vanhanhdchungyen.workers.dev. If rename remains unavailable, use vhdchy-beta.1291.workers.dev / vhdchy-stable.1291.workers.dev instead."
-  - "Cloudflare custom-zone review remains open; it does not block workers.dev or account-level Workers/D1 work."
+  - "Current Cloudflare account subdomain remains 1291.workers.dev, but OWNER explicitly does not accept it for VHDCHY public URLs."
+  - "Preferred replacement account subdomain: vanhanhdchungyen.workers.dev."
+  - "Cloudflare custom-zone review remains open; it does not block independent Google/Android setup."
   - "GitHub environments beta/stable are operationally verified; stable required-reviewer protection is active."
   - "Drive project root owner/private readback PASS. BETA root ID=1EpUI49xbFUtgzR3mh3M0EQu7qYYsswB5; STABLE root ID=1c6RNTOHOzaX6GrQFOEd64h9rndPoeiFI."
   - "LAN Probe plan file: ops/setup/LAN_PROBE_PLAN.md; plan READY, empirical gate OPEN."
