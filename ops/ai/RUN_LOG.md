@@ -78,6 +78,14 @@
 - Sửa chẩn đoán: zone lookup=0 phù hợp với việc zone chưa tồn tại trong Cloudflare account; chưa thể kết luận token scope sai.
 - Cloudflare official docs 2026: trước Worker Custom Domain phải có active Cloudflare zone; Worker chỉ là prerequisite khi attach Custom Domain, không phải prerequisite để onboard domain/zone.
 - Google GCP hoàn toàn độc lập với Cloudflare zone onboarding.
-- Bước đúng tiếp theo: Domains -> Onboard a domain -> thêm `vanhanhdchungyen.cc.cd`, hoàn tất nameserver delegation; sau đó mới scope token vào Specific zone và rerun verification.
+- Bước đúng tiếp theo lúc đó: Domains -> Onboard a domain -> thêm `vanhanhdchungyen.cc.cd`, hoàn tất nameserver delegation; sau đó mới scope token vào Specific zone và rerun verification.
+
+## 2026-09-10 10:45 +07 — SETUP-001 / CLOUDFLARE ZONE CREATION RESTRICTION
+
+- Owner gửi ảnh Cloudflare `Add site`: nhập `vanhanhdchungyen.cc.cd` bị chặn ngay với thông báo `You are not allowed to create new zones at this time`; Cloudflare hướng non-Enterprise user tới `abusereply@cloudflare.com`.
+- Kiểm tra ngoài: DNSHE xác nhận `.cc.cd` là namespace đăng ký public; `cc.cd` đã có trong Public Suffix List từ cuối 2025. Vì vậy `vanhanhdchungyen.cc.cd` có mô hình sử dụng như một registered name độc lập dưới DNSHE; bản thân việc nó nằm dưới `cc.cd` không giải thích lỗi UI này.
+- Kết luận: blocker hiện tại là Cloudflare zone-creation restriction/review, không phải thiếu Worker, D1 hay Google GCP project.
+- Không khuyến nghị tạo account khác để né restriction. Dùng review/support path chính thức, kèm bằng chứng quyền kiểm soát domain trong DNSHE.
+- Trong lúc chờ Cloudflare review, S3 Google Cloud/OAuth và S6 Android signing vẫn độc lập và có thể tiếp tục.
 
 Raw chat/log không được lưu vào đây. Chỉ lưu dữ kiện đủ để phục hồi công việc nhanh.
