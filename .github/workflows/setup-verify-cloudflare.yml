@@ -28,14 +28,15 @@ jobs:
             exit 1
           fi
 
-          accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
-          echo "${accounts_json}" | jq -e '.success == true' >/dev/null
-          account_count="$(echo "${accounts_json}" | jq '.result | length')"
-          if [ "${account_count}" -lt 1 ]; then
-            echo "::error::Token cannot read any scoped Cloudflare account"
+          zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" 'https://api.cloudflare.com/client/v4/zones')"
+          echo "${zones_json}" | jq -e '.success == true' >/dev/null
+          zone_count="$(echo "${zones_json}" | jq '.result | length')"
+          if [ "${zone_count}" -ne 1 ]; then
+            echo "::error::Expected exactly one accessible zone ${EXPECTED_ZONE}, got ${zone_count}"
             exit 1
           fi
-          account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+          zone_id="$(echo "${zones_json}" | jq -r '.result[0].id')"
+          account_id="$(echo "${zones_json}" | jq -r '.result[0].account.id')"
 
           case "${CF_TOKEN}" in
             cfat_*) verify_url="https://api.cloudflare.com/client/v4/accounts/${account_id}/tokens/verify" ;;
@@ -44,14 +45,8 @@ jobs:
           verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${verify_url}")"
           echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
 
-          zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" --data-urlencode "account.id=${account_id}" 'https://api.cloudflare.com/client/v4/zones')"
-          echo "${zones_json}" | jq -e '.success == true' >/dev/null
-          zone_count="$(echo "${zones_json}" | jq '.result | length')"
-          if [ "${zone_count}" -ne 1 ]; then
-            echo "::error::Expected exactly one scoped zone ${EXPECTED_ZONE}, got ${zone_count}"
-            exit 1
-          fi
-          zone_id="$(echo "${zones_json}" | jq -r '.result[0].id')"
+          account_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "https://api.cloudflare.com/client/v4/accounts/${account_id}")"
+          echo "${account_json}" | jq -e '.success == true and .result.id != null' >/dev/null
 
           echo "BETA_CLOUDFLARE_TOKEN=PASS"
           echo "CF_ACCOUNT_ID=${account_id}"
@@ -74,14 +69,15 @@ jobs:
             exit 1
           fi
 
-          accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
-          echo "${accounts_json}" | jq -e '.success == true' >/dev/null
-          account_count="$(echo "${accounts_json}" | jq '.result | length')"
-          if [ "${account_count}" -lt 1 ]; then
-            echo "::error::Token cannot read any scoped Cloudflare account"
+          zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" 'https://api.cloudflare.com/client/v4/zones')"
+          echo "${zones_json}" | jq -e '.success == true' >/dev/null
+          zone_count="$(echo "${zones_json}" | jq '.result | length')"
+          if [ "${zone_count}" -ne 1 ]; then
+            echo "::error::Expected exactly one accessible zone ${EXPECTED_ZONE}, got ${zone_count}"
             exit 1
           fi
-          account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+          zone_id="$(echo "${zones_json}" | jq -r '.result[0].id')"
+          account_id="$(echo "${zones_json}" | jq -r '.result[0].account.id')"
 
           case "${CF_TOKEN}" in
             cfat_*) verify_url="https://api.cloudflare.com/client/v4/accounts/${account_id}/tokens/verify" ;;
@@ -90,14 +86,8 @@ jobs:
           verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${verify_url}")"
           echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
 
-          zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" --data-urlencode "account.id=${account_id}" 'https://api.cloudflare.com/client/v4/zones')"
-          echo "${zones_json}" | jq -e '.success == true' >/dev/null
-          zone_count="$(echo "${zones_json}" | jq '.result | length')"
-          if [ "${zone_count}" -ne 1 ]; then
-            echo "::error::Expected exactly one scoped zone ${EXPECTED_ZONE}, got ${zone_count}"
-            exit 1
-          fi
-          zone_id="$(echo "${zones_json}" | jq -r '.result[0].id')"
+          account_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "https://api.cloudflare.com/client/v4/accounts/${account_id}")"
+          echo "${account_json}" | jq -e '.success == true and .result.id != null' >/dev/null
 
           echo "STABLE_CLOUDFLARE_TOKEN=PASS"
           echo "CF_ACCOUNT_ID=${account_id}"
