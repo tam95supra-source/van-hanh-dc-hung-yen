@@ -54,7 +54,7 @@ Dependency/order và trạng thái thực tế:
 
 1. [x] `S0` checkpoint scope/authority — DONE.
 2. [~] `S1` GitHub Environments `beta`/`stable` + secrets/variables — ENVIRONMENTS_VERIFIED_BY_WORKFLOW; `stable` required-reviewer protection active; secrets/variables still PARTIAL until all provider values exist.
-3. [~] `S2` Cloudflare scoped tokens + account/zone IDs — OWNER created both tokens and stored secret names. Current blocker is NOT token scope proof: target zone has not been created because Cloudflare UI blocks `Add site` with `You are not allowed to create new zones at this time`. Official review/support path required before zone onboarding. Worker/GCP are not prerequisites for zone creation.
+3. [~] `S2` Cloudflare — PARTIAL. BETA/STABLE tokens owner-created; account-level BETA access verified. `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76`. Account already has workers.dev subdomain `1291.workers.dev`. OWNER approved changing to `vanhanhdchungyen.workers.dev`; API update returned Cloudflare 10036 because the account already has an associated subdomain, so dashboard `Workers & Pages -> Change` is the safe next step. Custom zone `vanhanhdchungyen.cc.cd` remains separately blocked by Cloudflare Add-site review.
 4. [ ] `S3` Google Cloud BETA/STABLE + APIs + OAuth clients/refresh tokens — PENDING; independent of S2 and may proceed in parallel.
 5. [ ] `S4` Apps Script BETA/STABLE bootstrap + web-app deployment + Sheets projection automation — PENDING; depends on S3; Bootstrap Kit ready.
 6. [x] `S5` Drive runtime roots BETA/STABLE — PASS 2026-09-10. Root IDs stored in `ops/setup/RESOURCE_REGISTRY.md`; each env readback contains `00_SHARED..07_SYSTEM`.
@@ -64,11 +64,11 @@ Dependency/order và trạng thái thực tế:
 10. [ ] `S8+` Cloud/Google/App/Web/LAN workstreams parallelize after contracts.
 
 Cloudflare evidence:
-- Validation workflow: `.github/workflows/setup-verify-cloudflare.yml`.
-- Run `34433999726`: BETA token/account access succeeded far enough to query Cloudflare APIs; exact zone lookup returned 0.
-- Run `34434041556`: target zone still returned 0; STABLE job waits on required reviewer.
-- Owner screenshot 2026-09-10: Cloudflare `Add site` rejects `vanhanhdchungyen.cc.cd` with `You are not allowed to create new zones at this time` and directs non-Enterprise users to `abusereply@cloudflare.com`.
-- DNSHE documents `.cc.cd` as a public registration namespace; `cc.cd` is present in the Public Suffix List, so `vanhanhdchungyen.cc.cd` is intended as an independently controlled registered name rather than requiring ownership of the parent `cc.cd`.
+- `.github/workflows/setup-verify-cloudflare.yml` verified BETA token/account API access.
+- `.github/workflows/setup-workers-dev.yml` run `34435410482` read `CF_ACCOUNT_ID=d79b87776e86d8edc8f4a0a94302ca76` and current `CURRENT_WORKERS_DEV_SUBDOMAIN=1291`; PUT target `vanhanhdchungyen` returned HTTP 409 / Cloudflare `10036: Account already has an associated subdomain`.
+- Cloudflare docs state account workers.dev subdomain can be changed in Dashboard: Workers & Pages -> Change next to Your subdomain.
+- OWNER approved interim workers.dev route while custom zone review is pending. Fixed Worker names remain `vhdchy-beta` / `vhdchy-stable`; after desired account subdomain change, URLs will be `vhdchy-beta.vanhanhdchungyen.workers.dev` and `vhdchy-stable.vanhanhdchungyen.workers.dev`.
+- LAN is not exposed on workers.dev.
 
 Empirical gates, not architecture questions:
 - `LAN_FEASIBILITY_REQUIRES_REAL_HY1_HY2_PROBE` — PLAN READY, TEST NOT RUN.
@@ -76,4 +76,4 @@ Empirical gates, not architecture questions:
 
 ## NEXT
 
-Owner uses Cloudflare's official review path to request zone-creation access for `vanhanhdchungyen.cc.cd`. While waiting, proceed with independent S3 Google Cloud/OAuth and S6 Android signing. Once Cloudflare permits Add site: onboard zone, delegate DNSHE to Cloudflare nameservers, scope BETA/STABLE tokens to the new Specific zone, then rerun validation. Do not repeat S5 or recreate environments.
+Owner changes the existing Workers account subdomain from `1291` to `vanhanhdchungyen` in Cloudflare Dashboard if the target is available. AI then readbacks workers.dev and can continue account-level Worker/D1 setup without waiting for custom-zone review. In parallel, start S3 Google Cloud/OAuth and S6 Android signing. Custom zone review remains open but no longer blocks Beta build/test through workers.dev.
