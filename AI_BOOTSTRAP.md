@@ -2,14 +2,14 @@
 
 ## 1. Phạm vi được phép
 
-Repository duy nhất đang được phép thao tác cho dự án này:
+Repository CHÍNH THỨC duy nhất được phép GHI/SỬA/DEPLOY cho dự án này:
 
 - `tam95supra-source/van-hanh-dc-hung-yen`
 - Branch mặc định: `main`
 
-Không đọc/ghi/sửa repository khác cho công việc của dự án này nếu chưa có chỉ thị mới của người dùng và chưa cập nhật lại phạm vi này.
+PICK PACK 1291 là **READ-ONLY REFERENCE** đã được OWNER cho phép để tham khảo/reuse có chọn lọc source, logic, UI, test và nghiệp vụ cho cluster Pick Pack 1291. Không được ghi/sửa/deploy/xóa dự án reference, không runtime fallback sang dự án cũ và không coi resource/data/runtime cũ là authority của VHDCHY.
 
-Phạm vi dịch vụ bên ngoài hiện **chưa được khai báo**. Không tự suy đoán quyền thao tác dịch vụ.
+Phạm vi dịch vụ bên ngoài được triển khai theo Master Spec/Runbook đã OWNER duyệt: Google (Drive/Sheets/Apps Script/OAuth), Cloudflare (Workers/D1/Durable Objects/R2 optional/DNS custom domain), GitHub Actions/Releases và LAN local. Secret phải ở secret store, không plaintext trong repo.
 
 ## 2. Nguồn sự thật
 
@@ -157,7 +157,7 @@ Nếu dữ liệu trong chat mâu thuẫn với checkpoint cũ, ưu tiên chỉ 
 - Không ghi secret/token/password vào repository.
 - Không xóa/ghi đè dữ liệu ngoài phạm vi đã cho phép.
 - Thao tác phá hủy phải có ủy quyền rõ ràng của người dùng.
-- Không tự mở rộng phạm vi repo/service.
+- Không tự mở rộng phạm vi repo/service ngoài Master Spec/Runbook đã duyệt.
 
 ## 13. Quy tắc kết thúc lượt thực thi
 
