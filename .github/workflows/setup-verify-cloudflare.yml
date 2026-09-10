@@ -28,9 +28,6 @@ jobs:
             exit 1
           fi
 
-          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" https://api.cloudflare.com/client/v4/user/tokens/verify)"
-          echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
-
           accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
           echo "${accounts_json}" | jq -e '.success == true' >/dev/null
           account_count="$(echo "${accounts_json}" | jq '.result | length')"
@@ -39,6 +36,13 @@ jobs:
             exit 1
           fi
           account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+
+          case "${CF_TOKEN}" in
+            cfat_*) verify_url="https://api.cloudflare.com/client/v4/accounts/${account_id}/tokens/verify" ;;
+            *) verify_url="https://api.cloudflare.com/client/v4/user/tokens/verify" ;;
+          esac
+          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${verify_url}")"
+          echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
 
           zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" --data-urlencode "account.id=${account_id}" 'https://api.cloudflare.com/client/v4/zones')"
           echo "${zones_json}" | jq -e '.success == true' >/dev/null
@@ -70,9 +74,6 @@ jobs:
             exit 1
           fi
 
-          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" https://api.cloudflare.com/client/v4/user/tokens/verify)"
-          echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
-
           accounts_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" 'https://api.cloudflare.com/client/v4/accounts?per_page=50')"
           echo "${accounts_json}" | jq -e '.success == true' >/dev/null
           account_count="$(echo "${accounts_json}" | jq '.result | length')"
@@ -81,6 +82,13 @@ jobs:
             exit 1
           fi
           account_id="$(echo "${accounts_json}" | jq -r '.result[0].id')"
+
+          case "${CF_TOKEN}" in
+            cfat_*) verify_url="https://api.cloudflare.com/client/v4/accounts/${account_id}/tokens/verify" ;;
+            *) verify_url="https://api.cloudflare.com/client/v4/user/tokens/verify" ;;
+          esac
+          verify_json="$(curl -fsS -H "Authorization: Bearer ${CF_TOKEN}" "${verify_url}")"
+          echo "${verify_json}" | jq -e '.success == true and .result.status == "active"' >/dev/null
 
           zones_json="$(curl -fsS -G -H "Authorization: Bearer ${CF_TOKEN}" --data-urlencode "name=${EXPECTED_ZONE}" --data-urlencode "account.id=${account_id}" 'https://api.cloudflare.com/client/v4/zones')"
           echo "${zones_json}" | jq -e '.success == true' >/dev/null
